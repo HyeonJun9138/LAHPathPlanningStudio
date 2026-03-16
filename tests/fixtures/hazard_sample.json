@@ -1,0 +1,42 @@
+[
+  {
+    "id": "hz_001",
+    "name": "sensitive_zone_a",
+    "type": "visibility_sensitive_zone",
+    "x": 1000.0,
+    "y": 2000.0,
+    "z": 120.0,
+    "influence_radius_m": 2500.0,
+    "altitude_weight_profile": {
+      "low_masked": 0.4,
+      "mid_transit": 0.7,
+      "high_observe": 1.0
+    },
+    "visibility_sensitive": true,
+    "range_falloff_type": "exp",
+    "range_falloff_scale": 1200.0,
+    "sector_azimuth_deg": 45.0,
+    "sector_width_deg": 120.0,
+    "enabled": true
+  },
+  {
+    "id": "hz_002",
+    "name": "restricted_area_b",
+    "type": "restricted_zone",
+    "x": 5000.0,
+    "y": 8000.0,
+    "z": 0.0,
+    "influence_radius_m": 1500.0,
+    "altitude_weight_profile": {
+      "low_masked": 1.0,
+      "mid_transit": 0.8,
+      "high_observe": 0.5
+    },
+    "visibility_sensitive": false,
+    "range_falloff_type": "linear",
+    "range_falloff_scale": 1500.0,
+    "sector_azimuth_deg": 0.0,
+    "sector_width_deg": 360.0,
+    "enabled": true
+  }
+]

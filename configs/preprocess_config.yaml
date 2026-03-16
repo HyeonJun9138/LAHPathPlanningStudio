@@ -1,0 +1,55 @@
+# Terrain preprocessing configuration
+# Used by the terrain preprocessing pipeline to control reprojection,
+# resampling, derivative computation, and patch extraction.
+
+terrain:
+  # Target CRS for reprojection (UTM zone — adjust per dataset)
+  target_crs: "EPSG:32652"
+  # Target resolution in metres (isotropic)
+  target_resolution_m: 10.0
+  # Resampling method: nearest | bilinear | cubic | cubic_spline | lanczos
+  resample_method: bilinear
+  # NoData fill value for missing pixels after reprojection
+  nodata_value: -9999.0
+
+patch:
+  # Patch sizes in pixels at native resolution
+  local_hi_size: 128
+  local_mid_size: 64
+  # Resolution level for mid-resolution patches (2 = every other pixel)
+  mid_resolution_level: 2
+  # Number of terrain channels (elevation, slope, aspect, roughness, curvature, tpi, openness, local_relief)
+  num_channels: 8
+
+derivatives:
+  # Slope & aspect computation
+  compute_slope: true
+  compute_aspect: true
+  # Roughness
+  compute_roughness: true
+  roughness_window: 5
+  # Curvature
+  compute_curvature: true
+  # Topographic Position Index
+  compute_tpi: true
+  tpi_window: 11
+  # Topographic openness
+  compute_openness: true
+  openness_radius_m: 500.0
+  # Local relief
+  compute_local_relief: true
+  local_relief_window: 11
+  # Ridge-valley index (derived from TPI + curvature)
+  compute_ridge_valley: true
+  # Clearance cost base surface
+  compute_clearance_cost: true
+  clearance_slope_weight: 0.7
+  clearance_roughness_weight: 0.3
+
+cache:
+  # Whether to cache preprocessed arrays to disk
+  enabled: true
+  # Cache format: npz | npy | zarr
+  format: npz
+  # Compression level for npz (0 = none, 9 = max)
+  compression_level: 3

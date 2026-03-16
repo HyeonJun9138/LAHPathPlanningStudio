@@ -1,0 +1,245 @@
+# Curriculum C — Full Observation Mission
+# Includes all mission phases: transit, safe hold, observe setup, popup,
+# drop-down, egress, return/divert.  The most challenging curriculum.
+
+name: curriculum_c_full_observation
+description: >
+  Complete reconnaissance mission with observation popup manoeuvre, terrain
+  masking egress, and return/divert decision.  Exercises every phase of
+  the mission state machine under dense threat conditions.
+
+stages:
+  - stage_id: stage_1
+    name: Observation basics, light threats
+    terrain_ids: [Hongik_48km]
+    mission_modes: [TRANSIT, SAFE_HOLD, OBSERVE_SETUP, POPUP_OBSERVE, DROP_DOWN, EGRESS]
+    max_episode_time_sec: 1200.0
+    num_episodes: 5000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 20.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+        - name: medium
+          agl_m: 100.0
+        - name: high
+          agl_m: 200.0
+      sources:
+        - id: sam_alpha
+          name: SAM Site Alpha
+          type: sam
+          x: 12500.0
+          y: 8200.0
+          z: 340.0
+          influence_radius_m: 6000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.2
+            low: 0.6
+            medium: 1.0
+            high: 0.8
+          visibility_sensitive: true
+          range_falloff_type: exp
+          range_falloff_scale: 2000.0
+          sector_azimuth_deg: 0.0
+          sector_width_deg: 360.0
+          enabled: true
+      restricted_zones: []
+      observe_boxes:
+        - id: obs_01
+          center_xyz: [20000.0, 22000.0, 450.0]
+          size_xyz: [2000.0, 2000.0, 200.0]
+          required_los_ratio: 0.6
+          preferred_heading: 90.0
+          observation_duration_sec: 10.0
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.45
+
+  - stage_id: stage_2
+    name: Full observation with threats and restricted zones
+    terrain_ids: [Inje_48km]
+    mission_modes: [TRANSIT, SAFE_HOLD, OBSERVE_SETUP, POPUP_OBSERVE, DROP_DOWN, EGRESS, RETURN_HOME]
+    max_episode_time_sec: 1500.0
+    num_episodes: 8000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 25.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+        - name: medium
+          agl_m: 100.0
+        - name: high
+          agl_m: 200.0
+      sources:
+        - id: sam_alpha
+          name: SAM Site Alpha
+          type: sam
+          x: 12500.0
+          y: 8200.0
+          z: 340.0
+          influence_radius_m: 6000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.2
+            low: 0.6
+            medium: 1.0
+            high: 0.8
+          visibility_sensitive: true
+          range_falloff_type: exp
+          range_falloff_scale: 2000.0
+          sector_azimuth_deg: 0.0
+          sector_width_deg: 360.0
+          enabled: true
+        - id: aaa_bravo
+          name: AAA Emplacement Bravo
+          type: aaa
+          x: 18000.0
+          y: 15400.0
+          z: 520.0
+          influence_radius_m: 3500.0
+          altitude_weight_profile:
+            nap_of_earth: 0.8
+            low: 1.0
+            medium: 0.5
+            high: 0.1
+          visibility_sensitive: true
+          range_falloff_type: linear
+          range_falloff_scale: 1200.0
+          sector_azimuth_deg: 135.0
+          sector_width_deg: 180.0
+          enabled: true
+      restricted_zones:
+        - id: rz_01
+          polygon:
+            - [10000.0, 14000.0]
+            - [14000.0, 14000.0]
+            - [14000.0, 18000.0]
+            - [10000.0, 18000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 9999.0
+          penalty_type: hard
+          penalty_value: 1.0
+      observe_boxes:
+        - id: obs_01
+          center_xyz: [20000.0, 22000.0, 450.0]
+          size_xyz: [2000.0, 2000.0, 200.0]
+          required_los_ratio: 0.7
+          preferred_heading: 90.0
+          observation_duration_sec: 15.0
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.40
+
+  - stage_id: stage_3
+    name: Full mission with divert, dense threats, mountainous
+    terrain_ids: [Jipo_48km]
+    mission_modes: [TRANSIT, SAFE_HOLD, OBSERVE_SETUP, POPUP_OBSERVE, DROP_DOWN, EGRESS, RETURN_HOME, DIVERT]
+    max_episode_time_sec: 1800.0
+    num_episodes: 12000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 30.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+        - name: medium
+          agl_m: 100.0
+        - name: high
+          agl_m: 200.0
+      sources:
+        - id: sam_alpha
+          name: SAM Site Alpha
+          type: sam
+          x: 12500.0
+          y: 8200.0
+          z: 340.0
+          influence_radius_m: 6000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.2
+            low: 0.6
+            medium: 1.0
+            high: 0.8
+          visibility_sensitive: true
+          range_falloff_type: exp
+          range_falloff_scale: 2000.0
+          sector_azimuth_deg: 0.0
+          sector_width_deg: 360.0
+          enabled: true
+        - id: aaa_bravo
+          name: AAA Emplacement Bravo
+          type: aaa
+          x: 18000.0
+          y: 15400.0
+          z: 520.0
+          influence_radius_m: 3500.0
+          altitude_weight_profile:
+            nap_of_earth: 0.8
+            low: 1.0
+            medium: 0.5
+            high: 0.1
+          visibility_sensitive: true
+          range_falloff_type: linear
+          range_falloff_scale: 1200.0
+          sector_azimuth_deg: 135.0
+          sector_width_deg: 180.0
+          enabled: true
+        - id: ew_charlie
+          name: EW Radar Charlie
+          type: radar
+          x: 24000.0
+          y: 22000.0
+          z: 680.0
+          influence_radius_m: 10000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.1
+            low: 0.3
+            medium: 0.7
+            high: 1.0
+          visibility_sensitive: true
+          range_falloff_type: inverse
+          range_falloff_scale: 3000.0
+          sector_azimuth_deg: 270.0
+          sector_width_deg: 120.0
+          enabled: true
+      restricted_zones:
+        - id: rz_01
+          polygon:
+            - [10000.0, 14000.0]
+            - [14000.0, 14000.0]
+            - [14000.0, 18000.0]
+            - [10000.0, 18000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 9999.0
+          penalty_type: hard
+          penalty_value: 1.0
+        - id: rz_02
+          polygon:
+            - [20000.0, 20000.0]
+            - [24000.0, 20000.0]
+            - [24000.0, 24000.0]
+            - [20000.0, 24000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 200.0
+          penalty_type: soft
+          penalty_value: 0.8
+      observe_boxes:
+        - id: obs_01
+          center_xyz: [20000.0, 22000.0, 450.0]
+          size_xyz: [2000.0, 2000.0, 200.0]
+          required_los_ratio: 0.75
+          preferred_heading: 90.0
+          observation_duration_sec: 15.0
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.35
+
+progression:
+  window_episodes: 200
+  metric: success_rate

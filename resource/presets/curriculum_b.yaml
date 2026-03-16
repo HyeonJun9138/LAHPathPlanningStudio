@@ -1,0 +1,240 @@
+# Curriculum B — Transit + Safe Hold
+# Introduces restricted zones, multiple hazard sources, and safe-hold manoeuvres.
+# Builds on Curriculum A with threat avoidance and emergency hover capability.
+
+name: curriculum_b_transit_safe_hold
+description: >
+  Transit missions with restricted zones and active hazard sources.  The agent
+  must learn threat avoidance, terrain masking, and safe-hold hover when risk
+  exceeds thresholds.
+
+stages:
+  - stage_id: stage_1
+    name: Single hazard, one restricted zone
+    terrain_ids: [Hongik_48km]
+    mission_modes: [TRANSIT, SAFE_HOLD]
+    max_episode_time_sec: 900.0
+    num_episodes: 3000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 20.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+        - name: medium
+          agl_m: 100.0
+      sources:
+        - id: sam_alpha
+          name: SAM Site Alpha
+          type: sam
+          x: 12500.0
+          y: 8200.0
+          z: 340.0
+          influence_radius_m: 6000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.2
+            low: 0.6
+            medium: 1.0
+          visibility_sensitive: true
+          range_falloff_type: exp
+          range_falloff_scale: 2000.0
+          sector_azimuth_deg: 0.0
+          sector_width_deg: 360.0
+          enabled: true
+      restricted_zones:
+        - id: rz_01
+          polygon:
+            - [10000.0, 14000.0]
+            - [14000.0, 14000.0]
+            - [14000.0, 18000.0]
+            - [10000.0, 18000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 9999.0
+          penalty_type: hard
+          penalty_value: 1.0
+      observe_boxes: []
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.55
+
+  - stage_id: stage_2
+    name: Multiple hazards, two restricted zones
+    terrain_ids: [Inje_48km]
+    mission_modes: [TRANSIT, SAFE_HOLD]
+    max_episode_time_sec: 1200.0
+    num_episodes: 5000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 25.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+        - name: medium
+          agl_m: 100.0
+      sources:
+        - id: sam_alpha
+          name: SAM Site Alpha
+          type: sam
+          x: 12500.0
+          y: 8200.0
+          z: 340.0
+          influence_radius_m: 6000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.2
+            low: 0.6
+            medium: 1.0
+          visibility_sensitive: true
+          range_falloff_type: exp
+          range_falloff_scale: 2000.0
+          sector_azimuth_deg: 0.0
+          sector_width_deg: 360.0
+          enabled: true
+        - id: aaa_bravo
+          name: AAA Emplacement Bravo
+          type: aaa
+          x: 18000.0
+          y: 15400.0
+          z: 520.0
+          influence_radius_m: 3500.0
+          altitude_weight_profile:
+            nap_of_earth: 0.8
+            low: 1.0
+            medium: 0.5
+          visibility_sensitive: true
+          range_falloff_type: linear
+          range_falloff_scale: 1200.0
+          sector_azimuth_deg: 135.0
+          sector_width_deg: 180.0
+          enabled: true
+      restricted_zones:
+        - id: rz_01
+          polygon:
+            - [10000.0, 14000.0]
+            - [14000.0, 14000.0]
+            - [14000.0, 18000.0]
+            - [10000.0, 18000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 9999.0
+          penalty_type: hard
+          penalty_value: 1.0
+        - id: rz_02
+          polygon:
+            - [20000.0, 20000.0]
+            - [24000.0, 20000.0]
+            - [24000.0, 24000.0]
+            - [20000.0, 24000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 200.0
+          penalty_type: soft
+          penalty_value: 0.8
+      observe_boxes: []
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.60
+
+  - stage_id: stage_3
+    name: Dense threats, mountainous terrain, divert option
+    terrain_ids: [Jipo_48km]
+    mission_modes: [TRANSIT, SAFE_HOLD, DIVERT]
+    max_episode_time_sec: 1500.0
+    num_episodes: 8000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 30.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+        - name: medium
+          agl_m: 100.0
+        - name: high
+          agl_m: 200.0
+      sources:
+        - id: sam_alpha
+          name: SAM Site Alpha
+          type: sam
+          x: 12500.0
+          y: 8200.0
+          z: 340.0
+          influence_radius_m: 6000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.2
+            low: 0.6
+            medium: 1.0
+            high: 0.8
+          visibility_sensitive: true
+          range_falloff_type: exp
+          range_falloff_scale: 2000.0
+          sector_azimuth_deg: 0.0
+          sector_width_deg: 360.0
+          enabled: true
+        - id: aaa_bravo
+          name: AAA Emplacement Bravo
+          type: aaa
+          x: 18000.0
+          y: 15400.0
+          z: 520.0
+          influence_radius_m: 3500.0
+          altitude_weight_profile:
+            nap_of_earth: 0.8
+            low: 1.0
+            medium: 0.5
+            high: 0.1
+          visibility_sensitive: true
+          range_falloff_type: linear
+          range_falloff_scale: 1200.0
+          sector_azimuth_deg: 135.0
+          sector_width_deg: 180.0
+          enabled: true
+        - id: ew_charlie
+          name: EW Radar Charlie
+          type: radar
+          x: 24000.0
+          y: 22000.0
+          z: 680.0
+          influence_radius_m: 10000.0
+          altitude_weight_profile:
+            nap_of_earth: 0.1
+            low: 0.3
+            medium: 0.7
+            high: 1.0
+          visibility_sensitive: true
+          range_falloff_type: inverse
+          range_falloff_scale: 3000.0
+          sector_azimuth_deg: 270.0
+          sector_width_deg: 120.0
+          enabled: true
+      restricted_zones:
+        - id: rz_01
+          polygon:
+            - [10000.0, 14000.0]
+            - [14000.0, 14000.0]
+            - [14000.0, 18000.0]
+            - [10000.0, 18000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 9999.0
+          penalty_type: hard
+          penalty_value: 1.0
+        - id: rz_02
+          polygon:
+            - [20000.0, 20000.0]
+            - [24000.0, 20000.0]
+            - [24000.0, 24000.0]
+            - [20000.0, 24000.0]
+          min_altitude_m: 0.0
+          max_altitude_m: 200.0
+          penalty_type: soft
+          penalty_value: 0.8
+      observe_boxes: []
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.55
+
+progression:
+  window_episodes: 100
+  metric: success_rate

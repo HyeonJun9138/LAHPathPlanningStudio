@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.so
+venv/
+.venv/
+env/
+
+# Node
+node_modules/
+apps/frontend/dist/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project specific
+workspace/projects/*/
+workspace/shared_cache/
+*.sqlite
+*.db
+*.npy
+*.npz
+*.zip
+*.onnx
+
+# Logs
+*.log
+tensorboard/
+
+# Large files
+resource/*.tif
+
+# Environment
+.env
+.env.local

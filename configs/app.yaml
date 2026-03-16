@@ -1,0 +1,18 @@
+app:
+  name: LAH Terrain Path Planning Studio
+  host: 127.0.0.1
+  port: 8000
+  workspace_root: ./workspace/projects
+  shared_cache_root: ./workspace/shared_cache
+  autosave_seconds: 30
+  default_device: cuda:0
+  log_level: INFO
+
+frontend:
+  origin: http://127.0.0.1:5173
+
+paths:
+  resource_root: ./resource
+  hazards_root: ./resource/hazards
+  missions_root: ./resource/missions
+  presets_root: ./resource/presets

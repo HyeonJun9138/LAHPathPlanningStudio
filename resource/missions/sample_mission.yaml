@@ -1,0 +1,44 @@
+# Sample mission for terrain path planning
+# Compatible with the Mission schema defined in engine.mission.schema
+
+mission_id: mission_hongik_recon_01
+terrain_id: Hongik_48km
+max_episode_time_sec: 1200.0
+
+start:
+  x: 2000.0
+  y: 3000.0
+  agl_m: 30.0
+
+goal:
+  x: 38000.0
+  y: 42000.0
+  agl_m: 30.0
+
+observe_box:
+  center_x: 20000.0
+  center_y: 22000.0
+  center_z: 450.0
+  size_x: 2000.0
+  size_y: 2000.0
+  size_z: 200.0
+  required_duration_sec: 15.0
+
+safe_hold_points:
+  - x: 8000.0
+    y: 10000.0
+    agl_m: 20.0
+  - x: 16000.0
+    y: 18000.0
+    agl_m: 25.0
+  - x: 28000.0
+    y: 30000.0
+    agl_m: 20.0
+
+alternate_lz:
+  - x: 5000.0
+    y: 6000.0
+    agl_m: 0.0
+  - x: 32000.0
+    y: 35000.0
+    agl_m: 0.0

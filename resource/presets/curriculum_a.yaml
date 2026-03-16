@@ -1,0 +1,80 @@
+# Curriculum A — Simple Transit
+# No observation phase, low risk environment.
+# Suitable for initial training: learn basic terrain-following navigation.
+
+name: curriculum_a_simple_transit
+description: >
+  Basic point-to-point transit with no observation requirement and minimal
+  hazard exposure.  Trains the agent to navigate terrain efficiently while
+  maintaining safe altitude clearance.
+
+stages:
+  - stage_id: stage_1
+    name: Short transit, flat terrain
+    terrain_ids: [Hongik_48km]
+    mission_modes: [TRANSIT]
+    max_episode_time_sec: 600.0
+    num_episodes: 2000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 20.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+      sources: []
+      restricted_zones: []
+      observe_boxes: []
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.6
+
+  - stage_id: stage_2
+    name: Medium transit, rolling terrain
+    terrain_ids: [Inje_48km]
+    mission_modes: [TRANSIT]
+    max_episode_time_sec: 900.0
+    num_episodes: 3000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 20.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+      sources: []
+      restricted_zones: []
+      observe_boxes: []
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.65
+
+  - stage_id: stage_3
+    name: Long transit, mountainous terrain
+    terrain_ids: [Jipo_48km]
+    mission_modes: [TRANSIT]
+    max_episode_time_sec: 1200.0
+    num_episodes: 5000
+    hazard_config:
+      fusion_mode: probabilistic_union
+      clearance_margin_m: 25.0
+      altitude_bands:
+        - name: nap_of_earth
+          agl_m: 15.0
+        - name: low
+          agl_m: 50.0
+        - name: medium
+          agl_m: 100.0
+      sources: []
+      restricted_zones: []
+      observe_boxes: []
+    reward_preset: reward_default
+    candidate_preset: candidate_default
+    success_threshold: 0.7
+
+progression:
+  # Move to next stage when success_threshold is met over a rolling window
+  window_episodes: 100
+  metric: success_rate

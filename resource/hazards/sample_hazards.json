@@ -1,0 +1,65 @@
+[
+  {
+    "id": "sam_alpha",
+    "name": "SAM Site Alpha",
+    "type": "sam",
+    "x": 12500.0,
+    "y": 8200.0,
+    "z": 340.0,
+    "influence_radius_m": 6000.0,
+    "altitude_weight_profile": {
+      "nap_of_earth": 0.2,
+      "low": 0.6,
+      "medium": 1.0,
+      "high": 0.8
+    },
+    "visibility_sensitive": true,
+    "range_falloff_type": "exp",
+    "range_falloff_scale": 2000.0,
+    "sector_azimuth_deg": 0.0,
+    "sector_width_deg": 360.0,
+    "enabled": true
+  },
+  {
+    "id": "aaa_bravo",
+    "name": "AAA Emplacement Bravo",
+    "type": "aaa",
+    "x": 18000.0,
+    "y": 15400.0,
+    "z": 520.0,
+    "influence_radius_m": 3500.0,
+    "altitude_weight_profile": {
+      "nap_of_earth": 0.8,
+      "low": 1.0,
+      "medium": 0.5,
+      "high": 0.1
+    },
+    "visibility_sensitive": true,
+    "range_falloff_type": "linear",
+    "range_falloff_scale": 1200.0,
+    "sector_azimuth_deg": 135.0,
+    "sector_width_deg": 180.0,
+    "enabled": true
+  },
+  {
+    "id": "ew_charlie",
+    "name": "EW Radar Charlie",
+    "type": "radar",
+    "x": 24000.0,
+    "y": 22000.0,
+    "z": 680.0,
+    "influence_radius_m": 10000.0,
+    "altitude_weight_profile": {
+      "nap_of_earth": 0.1,
+      "low": 0.3,
+      "medium": 0.7,
+      "high": 1.0
+    },
+    "visibility_sensitive": true,
+    "range_falloff_type": "inverse",
+    "range_falloff_scale": 3000.0,
+    "sector_azimuth_deg": 270.0,
+    "sector_width_deg": 120.0,
+    "enabled": true
+  }
+]

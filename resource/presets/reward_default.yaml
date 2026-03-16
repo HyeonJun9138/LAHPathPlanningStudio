@@ -1,0 +1,96 @@
+# Default reward weights for the terrain path planning RL environment.
+# Each weight scales a reward component that is summed per time step.
+# Positive weights encourage behaviour; negative weights penalise.
+
+name: reward_default
+description: >
+  Balanced default reward function for terrain-masked reconnaissance
+  path planning.  Emphasises goal progress and safety while providing
+  smaller shaping terms for efficiency and mission objectives.
+
+# ── Per-step shaping rewards ─────────────────────────────────────────
+
+goal_progress:
+  # Reward proportional to distance closed toward the goal this step.
+  weight: 1.0
+  # Normalisation: divide delta-distance by this value (metres).
+  normalise_distance_m: 1000.0
+
+risk_penalty:
+  # Penalty proportional to the local risk value at the agent position.
+  weight: -2.0
+  # Clip the maximum per-step penalty.
+  clip_max: -5.0
+
+altitude_clearance:
+  # Reward for maintaining AGL above a safe minimum.
+  weight: 0.3
+  # Target clearance in metres.
+  target_agl_m: 30.0
+  # Penalty scale when AGL drops below target.
+  below_penalty_scale: 1.5
+
+terrain_masking:
+  # Bonus when the agent is terrain-masked from active threat sources
+  # (line-of-sight check returns occluded).
+  weight: 0.5
+
+fuel_efficiency:
+  # Small penalty per step to encourage shorter paths.
+  weight: -0.05
+
+heading_smoothness:
+  # Penalty for large heading changes between consecutive waypoints.
+  weight: -0.2
+  # Threshold in degrees; changes below this incur no penalty.
+  threshold_deg: 30.0
+
+altitude_change:
+  # Penalty for large altitude changes between waypoints.
+  weight: -0.15
+  # Threshold in metres.
+  threshold_m: 20.0
+
+restricted_zone:
+  # Hard penalty for entering a restricted zone.
+  weight: -10.0
+
+# ── Terminal rewards ─────────────────────────────────────────────────
+
+goal_reached:
+  # One-time bonus when the agent reaches the goal waypoint.
+  weight: 50.0
+  # Proximity threshold in metres to count as "reached".
+  proximity_m: 200.0
+
+mission_success:
+  # Additional bonus when the full mission (including observation if
+  # required) is completed successfully.
+  weight: 30.0
+
+mission_timeout:
+  # Penalty when the episode ends due to time limit.
+  weight: -20.0
+
+crash:
+  # Penalty when the agent's AGL drops to zero or below.
+  weight: -50.0
+
+# ── Observation-specific rewards ─────────────────────────────────────
+
+observation_progress:
+  # Reward for time spent inside the observe box during the popup phase.
+  weight: 2.0
+
+observation_complete:
+  # One-time bonus when the observation duration requirement is met.
+  weight: 20.0
+
+safe_hold_bonus:
+  # Small bonus for each step spent in safe-hold when risk is high,
+  # encouraging the agent to use safe holds rather than pressing on.
+  weight: 0.2
+
+divert_success:
+  # Bonus for successfully diverting to an alternate LZ.
+  weight: 15.0
