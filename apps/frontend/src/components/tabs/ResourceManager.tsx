@@ -3,6 +3,7 @@ import { Search, RefreshCw, Upload, Eye, Database, FileText, Map } from 'lucide-
 import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
 import StatusBadge from '../common/StatusBadge';
+import { useT } from '../../i18n';
 
 interface ResourceItem {
   filename: string;
@@ -31,6 +32,7 @@ const presets = [
 export default function ResourceManager() {
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState('');
+  const t = useT();
 
   const filtered = demoResources.filter((r) =>
     r.filename.toLowerCase().includes(filter.toLowerCase())
@@ -46,7 +48,7 @@ export default function ResourceManager() {
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#0071e3] rounded-xl hover:bg-[#0077ED]"
           >
             <RefreshCw size={15} className={scanning ? 'animate-spin' : ''} />
-            Scan Resources
+            {t('resources.scanResources')}
           </button>
           <div className="relative flex-1 max-w-sm">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -54,7 +56,7 @@ export default function ResourceManager() {
               type="text"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter resources..."
+              placeholder={t('resources.filterPlaceholder')}
               className="w-full pl-9 pr-3 py-2 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             />
           </div>
@@ -64,22 +66,22 @@ export default function ResourceManager() {
       {/* Terrain files */}
       <GlassCard>
         <SectionTitle
-          title="Terrain Files"
-          description="GeoTIFF terrain elevation data"
+          title={t('resources.terrainFiles')}
+          description={t('resources.terrainDesc')}
         />
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b border-gray-200/50">
-                <th className="pb-2 font-medium">Preview</th>
-                <th className="pb-2 font-medium">Filename</th>
-                <th className="pb-2 font-medium">Type</th>
+                <th className="pb-2 font-medium">{t('common.preview')}</th>
+                <th className="pb-2 font-medium">{t('resources.filename')}</th>
+                <th className="pb-2 font-medium">{t('resources.type')}</th>
                 <th className="pb-2 font-medium">CRS</th>
-                <th className="pb-2 font-medium">Resolution</th>
-                <th className="pb-2 font-medium">Dimensions</th>
-                <th className="pb-2 font-medium">Size</th>
-                <th className="pb-2 font-medium">Status</th>
-                <th className="pb-2 font-medium">Actions</th>
+                <th className="pb-2 font-medium">{t('resources.resolution')}</th>
+                <th className="pb-2 font-medium">{t('resources.dimensions')}</th>
+                <th className="pb-2 font-medium">{t('resources.size')}</th>
+                <th className="pb-2 font-medium">{t('dashboard.status')}</th>
+                <th className="pb-2 font-medium">{t('resources.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -106,13 +108,13 @@ export default function ResourceManager() {
                   </td>
                   <td className="py-3">
                     <div className="flex items-center gap-1">
-                      <button className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg" title="Preview">
+                      <button className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg" title={t('common.preview')}>
                         <Eye size={15} />
                       </button>
                       {!r.registered && (
                         <button className="px-2.5 py-1 text-xs font-medium text-[#0071e3] bg-blue-50 rounded-lg hover:bg-blue-100">
                           <Upload size={13} className="inline mr-1" />
-                          Register
+                          {t('common.register')}
                         </button>
                       )}
                     </div>
@@ -126,7 +128,7 @@ export default function ResourceManager() {
 
       {/* Presets */}
       <GlassCard>
-        <SectionTitle title="Presets & Configs" description="Hazard, mission, and curriculum configuration files" />
+        <SectionTitle title={t('resources.presetsConfigs')} description={t('resources.presetsDesc')} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {presets.map((p) => (
             <div key={p.name} className="flex items-center gap-3 px-4 py-3 bg-gray-50/60 rounded-xl hover:bg-gray-100/60 transition-colors">

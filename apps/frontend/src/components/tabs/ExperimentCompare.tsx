@@ -4,6 +4,7 @@ import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
 import StatusBadge from '../common/StatusBadge';
 import PlotCard from '../common/PlotCard';
+import { useT } from '../../i18n';
 
 interface RunEntry {
   id: string;
@@ -31,6 +32,7 @@ export default function ExperimentCompare() {
   const [stageFilter, setStageFilter] = useState('all');
   const [terrainFilter, setTerrainFilter] = useState('all');
   const [sortBy, setSortBy] = useState<keyof RunEntry>('success');
+  const t = useT();
 
   const toggleRun = (id: string) => {
     setSelected((prev) => {
@@ -58,34 +60,34 @@ export default function ExperimentCompare() {
         <GlassCard padding="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Filter size={15} className="text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Filters</span>
+            <span className="text-sm font-medium text-gray-700">{t('compare.filters')}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <select value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} className="px-2 py-1.5 text-xs bg-white/60 border border-gray-200/60 rounded-lg">
-              <option value="all">All Stages</option>
-              <option value="training">Training</option>
-              <option value="evaluation">Evaluation</option>
+              <option value="all">{t('compare.allStages')}</option>
+              <option value="training">{t('compare.training')}</option>
+              <option value="evaluation">{t('compare.evaluation')}</option>
             </select>
             <select value={terrainFilter} onChange={(e) => setTerrainFilter(e.target.value)} className="px-2 py-1.5 text-xs bg-white/60 border border-gray-200/60 rounded-lg">
-              <option value="all">All Terrains</option>
+              <option value="all">{t('compare.allTerrains')}</option>
               <option value="Hongik_48km">Hongik</option>
               <option value="Inje_48km">Inje</option>
               <option value="Jipo_48km">Jipo</option>
             </select>
           </div>
           <div className="mt-2">
-            <label className="text-xs text-gray-500">Sort by:</label>
+            <label className="text-xs text-gray-500">{t('compare.sortBy')}</label>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value as keyof RunEntry)} className="ml-2 px-2 py-1 text-xs bg-white/60 border border-gray-200/60 rounded-lg">
-              <option value="success">Success Rate</option>
-              <option value="risk">Risk</option>
-              <option value="reward">Reward</option>
-              <option value="pathLen">Path Length</option>
+              <option value="success">{t('compare.successRate')}</option>
+              <option value="risk">{t('compare.risk')}</option>
+              <option value="reward">{t('compare.reward')}</option>
+              <option value="pathLen">{t('compare.pathLength')}</option>
             </select>
           </div>
         </GlassCard>
 
         <GlassCard padding="p-3">
-          <SectionTitle title="Runs" description={`${selected.size} selected`} />
+          <SectionTitle title={t('compare.runs')} description={`${selected.size} ${t('compare.selected')}`} />
           <div className="space-y-1.5">
             {filtered.map((r) => (
               <label
@@ -113,7 +115,7 @@ export default function ExperimentCompare() {
                   <div className="flex gap-3 mt-1 text-xs">
                     <span className="text-green-600">S: {(r.success * 100).toFixed(0)}%</span>
                     <span className="text-blue-600">R: {r.reward.toFixed(1)}</span>
-                    <span className="text-red-500">Risk: {r.risk.toFixed(2)}</span>
+                    <span className="text-red-500">{t('compare.risk')}: {r.risk.toFixed(2)}</span>
                   </div>
                 </div>
               </label>
@@ -126,16 +128,16 @@ export default function ExperimentCompare() {
       <div className="col-span-5 space-y-4 overflow-y-auto">
         {/* Comparison table */}
         <GlassCard>
-          <SectionTitle title="Metrics Comparison" />
+          <SectionTitle title={t('compare.metricsComparison')} />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-gray-500 border-b border-gray-200/50">
-                  <th className="pb-2 font-medium">Run</th>
-                  <th className="pb-2 font-medium">Success</th>
-                  <th className="pb-2 font-medium">Reward</th>
-                  <th className="pb-2 font-medium">Risk</th>
-                  <th className="pb-2 font-medium">Path Len</th>
+                  <th className="pb-2 font-medium">{t('compare.runCol')}</th>
+                  <th className="pb-2 font-medium">{t('compare.success')}</th>
+                  <th className="pb-2 font-medium">{t('compare.reward')}</th>
+                  <th className="pb-2 font-medium">{t('compare.risk')}</th>
+                  <th className="pb-2 font-medium">{t('compare.pathLen')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -154,7 +156,7 @@ export default function ExperimentCompare() {
         </GlassCard>
 
         <PlotCard
-          title="Performance Comparison"
+          title={t('compare.performanceComparison')}
           data={selectedRuns.map((r, i) => ({
             x: ['Success', 'Reward/100', 'Low Risk', 'Short Path'],
             y: [r.success, r.reward / 100, 1 - r.risk, 1 - r.pathLen / 35000],
@@ -172,13 +174,13 @@ export default function ExperimentCompare() {
 
         {/* Config diff */}
         <GlassCard>
-          <SectionTitle title="Config Diff" description="Side-by-side parameter comparison" />
+          <SectionTitle title={t('compare.configDiff')} description={t('compare.configDiffDesc')} />
           {selectedRuns.length >= 2 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-xs font-mono">
                 <thead>
                   <tr className="text-left text-gray-500 border-b border-gray-200/50">
-                    <th className="pb-2 font-medium font-sans">Parameter</th>
+                    <th className="pb-2 font-medium font-sans">{t('compare.parameter')}</th>
                     {selectedRuns.slice(0, 3).map((r) => (
                       <th key={r.id} className="pb-2 font-medium font-sans truncate max-w-[100px]">{r.id.split('__')[1]}</th>
                     ))}
@@ -199,7 +201,7 @@ export default function ExperimentCompare() {
               </table>
             </div>
           ) : (
-            <p className="text-xs text-gray-400 italic">Select at least 2 runs to compare configs</p>
+            <p className="text-xs text-gray-400 italic">{t('compare.selectAtLeast2')}</p>
           )}
         </GlassCard>
       </div>
@@ -210,20 +212,20 @@ export default function ExperimentCompare() {
           <GlassCard className="border-2 border-green-200">
             <div className="flex items-center gap-2 mb-3">
               <Award size={18} className="text-amber-500" />
-              <SectionTitle title="Best Run" className="mb-0" />
+              <SectionTitle title={t('compare.bestRun')} className="mb-0" />
             </div>
             <div className="space-y-2 text-sm">
               <div className="text-xs font-mono text-gray-600 truncate">{bestRun.id}</div>
-              <div className="flex justify-between"><span className="text-gray-500">Terrain</span><span className="font-medium">{bestRun.terrain}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Algorithm</span><span className="font-medium">{bestRun.algorithm}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Success</span><span className="font-medium text-green-600">{(bestRun.success * 100).toFixed(0)}%</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Reward</span><span className="font-medium text-green-600">{bestRun.reward.toFixed(1)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Risk</span><span className="font-medium">{bestRun.risk.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Path Length</span><span className="font-medium">{bestRun.pathLen.toLocaleString()}m</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('dashboard.terrain')}</span><span className="font-medium">{bestRun.terrain}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('training.algorithm')}</span><span className="font-medium">{bestRun.algorithm}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('compare.success')}</span><span className="font-medium text-green-600">{(bestRun.success * 100).toFixed(0)}%</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('compare.reward')}</span><span className="font-medium text-green-600">{bestRun.reward.toFixed(1)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('compare.risk')}</span><span className="font-medium">{bestRun.risk.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('compare.pathLength')}</span><span className="font-medium">{bestRun.pathLen.toLocaleString()}m</span></div>
               {bestRun.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {bestRun.tags.map((t) => (
-                    <span key={t} className="px-2 py-0.5 text-xs bg-blue-50 text-blue-600 rounded-full">{t}</span>
+                  {bestRun.tags.map((tag) => (
+                    <span key={tag} className="px-2 py-0.5 text-xs bg-blue-50 text-blue-600 rounded-full">{tag}</span>
                   ))}
                 </div>
               )}
@@ -232,14 +234,14 @@ export default function ExperimentCompare() {
         )}
 
         <GlassCard>
-          <SectionTitle title="Selection Summary" />
+          <SectionTitle title={t('compare.selectionSummary')} />
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-gray-500">Selected Runs</span><span className="font-medium">{selected.size}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">{t('compare.selectedRuns')}</span><span className="font-medium">{selected.size}</span></div>
             {selectedRuns.length > 0 && (
               <>
-                <div className="flex justify-between"><span className="text-gray-500">Avg Success</span><span className="font-medium">{(selectedRuns.reduce((a, r) => a + r.success, 0) / selectedRuns.length * 100).toFixed(0)}%</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Avg Reward</span><span className="font-medium">{(selectedRuns.reduce((a, r) => a + r.reward, 0) / selectedRuns.length).toFixed(1)}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Terrains</span><span className="font-medium">{new Set(selectedRuns.map((r) => r.terrain)).size}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">{t('compare.avgSuccess')}</span><span className="font-medium">{(selectedRuns.reduce((a, r) => a + r.success, 0) / selectedRuns.length * 100).toFixed(0)}%</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">{t('compare.avgReward')}</span><span className="font-medium">{(selectedRuns.reduce((a, r) => a + r.reward, 0) / selectedRuns.length).toFixed(1)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">{t('compare.terrains')}</span><span className="font-medium">{new Set(selectedRuns.map((r) => r.terrain)).size}</span></div>
               </>
             )}
           </div>

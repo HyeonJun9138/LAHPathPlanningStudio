@@ -1,3 +1,6 @@
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
+
 type StatusType = 'idle' | 'ready' | 'running' | 'completed' | 'failed' | 'stopped' | 'queued';
 
 const styles: Record<StatusType, string> = {
@@ -20,17 +23,28 @@ const dots: Record<StatusType, string> = {
   stopped: 'bg-orange-500',
 };
 
+const statusKeys: Record<StatusType, TranslationKey> = {
+  idle: 'status.idle',
+  ready: 'status.ready',
+  running: 'status.running',
+  completed: 'status.completed',
+  failed: 'status.failed',
+  stopped: 'status.stopped',
+  queued: 'status.queued',
+};
+
 interface StatusBadgeProps {
   status: string;
   className?: string;
 }
 
 export default function StatusBadge({ status, className = '' }: StatusBadgeProps) {
+  const t = useT();
   const s = (status as StatusType) in styles ? (status as StatusType) : 'idle';
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${styles[s]} ${className}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dots[s]}`} />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {t(statusKeys[s])}
     </span>
   );
 }

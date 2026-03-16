@@ -132,3 +132,7 @@ export const generateReport = (data: ReportConfig) =>
 
 export const getReport = (reportId: string) =>
   api.get<Report>(`/reports/${reportId}`).then(r => r.data);
+
+// ── AI Assistant ──
+export const chatWithAI = (data: { message: string; system_prompt: string; tab: string }) =>
+  api.post<{ reply: string }>('/ai/chat', data).then(r => r.data);

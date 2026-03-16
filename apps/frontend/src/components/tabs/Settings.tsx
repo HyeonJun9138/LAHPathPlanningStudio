@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Save, RotateCcw, FolderOpen, Monitor, Palette, Clock, HardDrive, Terminal } from 'lucide-react';
 import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 
 interface SettingsState {
   workspacePath: string;
@@ -36,6 +38,7 @@ const defaultSettings: SettingsState = {
 export default function Settings() {
   const [settings, setSettings] = useState<SettingsState>({ ...defaultSettings });
   const [saved, setSaved] = useState(false);
+  const t = useT();
 
   const update = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -52,16 +55,22 @@ export default function Settings() {
     setSaved(false);
   };
 
+  const toggles: { key: 'enableNotifications' | 'darkMode' | 'compactSidebar'; labelKey: TranslationKey; descKey: TranslationKey }[] = [
+    { key: 'enableNotifications', labelKey: 'settings.enableNotifications', descKey: 'settings.notificationsDesc' },
+    { key: 'darkMode', labelKey: 'settings.darkMode', descKey: 'settings.darkModeDesc' },
+    { key: 'compactSidebar', labelKey: 'settings.compactSidebar', descKey: 'settings.compactSidebarDesc' },
+  ];
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* General */}
       <GlassCard>
-        <SectionTitle title="General" description="Workspace and environment settings" />
+        <SectionTitle title={t('settings.general')} description={t('settings.generalDesc')} />
         <div className="space-y-4">
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
               <FolderOpen size={15} className="text-gray-400" />
-              Default Workspace Path
+              {t('settings.workspacePath')}
             </label>
             <input
               type="text"
@@ -75,7 +84,7 @@ export default function Settings() {
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
                 <Monitor size={15} className="text-gray-400" />
-                Default Device
+                {t('settings.defaultDevice')}
               </label>
               <select
                 value={settings.defaultDevice}
@@ -90,7 +99,7 @@ export default function Settings() {
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
                 <Palette size={15} className="text-gray-400" />
-                Plot Theme
+                {t('settings.plotTheme')}
               </label>
               <select
                 value={settings.plotTheme}
@@ -109,7 +118,7 @@ export default function Settings() {
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
               <Terminal size={15} className="text-gray-400" />
-              External Editor Command
+              {t('settings.externalEditor')}
             </label>
             <input
               type="text"
@@ -124,12 +133,12 @@ export default function Settings() {
 
       {/* Intervals */}
       <GlassCard>
-        <SectionTitle title="Intervals & Retention" description="Timing and storage settings" />
+        <SectionTitle title={t('settings.intervals')} description={t('settings.intervalsDesc')} />
         <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
               <Clock size={15} className="text-gray-400" />
-              Autosave Interval
+              {t('settings.autosaveInterval')}
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -140,13 +149,13 @@ export default function Settings() {
                 max={300}
                 className="w-full px-3 py-2 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
-              <span className="text-xs text-gray-400 whitespace-nowrap">seconds</span>
+              <span className="text-xs text-gray-400 whitespace-nowrap">{t('settings.seconds')}</span>
             </div>
           </div>
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
               <Clock size={15} className="text-gray-400" />
-              Job Polling Interval
+              {t('settings.jobPollingInterval')}
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -157,13 +166,13 @@ export default function Settings() {
                 max={60}
                 className="w-full px-3 py-2 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
-              <span className="text-xs text-gray-400 whitespace-nowrap">seconds</span>
+              <span className="text-xs text-gray-400 whitespace-nowrap">{t('settings.seconds')}</span>
             </div>
           </div>
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
               <HardDrive size={15} className="text-gray-400" />
-              Log Retention
+              {t('settings.logRetention')}
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -174,7 +183,7 @@ export default function Settings() {
                 max={90}
                 className="w-full px-3 py-2 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
-              <span className="text-xs text-gray-400 whitespace-nowrap">days</span>
+              <span className="text-xs text-gray-400 whitespace-nowrap">{t('settings.days')}</span>
             </div>
           </div>
         </div>
@@ -182,10 +191,10 @@ export default function Settings() {
 
       {/* API & Jobs */}
       <GlassCard>
-        <SectionTitle title="API & Jobs" description="Backend connection and job settings" />
+        <SectionTitle title={t('settings.apiJobs')} description={t('settings.apiJobsDesc')} />
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">API Base URL</label>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">{t('settings.apiBaseUrl')}</label>
             <input
               type="text"
               value={settings.apiBaseUrl}
@@ -194,7 +203,7 @@ export default function Settings() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Max Concurrent Jobs</label>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">{t('settings.maxConcurrentJobs')}</label>
             <input
               type="number"
               value={settings.maxConcurrentJobs}
@@ -209,17 +218,13 @@ export default function Settings() {
 
       {/* Toggles */}
       <GlassCard>
-        <SectionTitle title="Preferences" description="UI and notification preferences" />
+        <SectionTitle title={t('settings.preferences')} description={t('settings.preferencesDesc')} />
         <div className="space-y-3">
-          {[
-            { key: 'enableNotifications' as const, label: 'Enable Notifications', description: 'Show desktop notifications for job completion' },
-            { key: 'darkMode' as const, label: 'Dark Mode', description: 'Enable dark theme (experimental)' },
-            { key: 'compactSidebar' as const, label: 'Compact Sidebar', description: 'Start with collapsed sidebar by default' },
-          ].map((toggle) => (
+          {toggles.map((toggle) => (
             <label key={toggle.key} className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-50/60 cursor-pointer">
               <div>
-                <div className="text-sm font-medium text-gray-700">{toggle.label}</div>
-                <div className="text-xs text-gray-400">{toggle.description}</div>
+                <div className="text-sm font-medium text-gray-700">{t(toggle.labelKey)}</div>
+                <div className="text-xs text-gray-400">{t(toggle.descKey)}</div>
               </div>
               <div
                 onClick={() => update(toggle.key, !settings[toggle.key])}
@@ -245,18 +250,18 @@ export default function Settings() {
           className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-600 bg-white/60 border border-gray-200/60 rounded-xl hover:bg-gray-100/60 transition-colors"
         >
           <RotateCcw size={15} />
-          Reset to Defaults
+          {t('settings.resetDefaults')}
         </button>
         <div className="flex items-center gap-3">
           {saved && (
-            <span className="text-sm text-green-600 font-medium animate-fade-in">Settings saved!</span>
+            <span className="text-sm text-green-600 font-medium animate-fade-in">{t('settings.saved')}</span>
           )}
           <button
             onClick={handleSave}
             className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-[#0071e3] rounded-xl hover:bg-[#0077ED] transition-colors shadow-sm"
           >
             <Save size={15} />
-            Save Settings
+            {t('settings.saveSettings')}
           </button>
         </div>
       </div>

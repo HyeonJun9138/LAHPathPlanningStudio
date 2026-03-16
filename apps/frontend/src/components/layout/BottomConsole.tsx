@@ -1,15 +1,18 @@
 import { useRef, useEffect } from 'react';
 import { Terminal, Activity, Package, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 
-const tabIcons = {
-  logs: Terminal,
-  progress: Activity,
-  artifacts: Package,
-} as const;
+const tabConfig: { key: 'logs' | 'progress' | 'artifacts'; labelKey: TranslationKey; icon: typeof Terminal }[] = [
+  { key: 'logs', labelKey: 'console.logs', icon: Terminal },
+  { key: 'progress', labelKey: 'console.progress', icon: Activity },
+  { key: 'artifacts', labelKey: 'console.artifacts', icon: Package },
+];
 
 export default function BottomConsole() {
   const { consoleExpanded, toggleConsole, consoleTab, setConsoleTab, consoleLogs, clearLogs, jobs } = useAppStore();
+  const t = useT();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,37 +41,34 @@ export default function BottomConsole() {
         onClick={toggleConsole}
       >
         <div className="flex items-center gap-1">
-          {(['logs', 'progress', 'artifacts'] as const).map((t) => {
-            const Icon = tabIcons[t];
-            return (
-              <button
-                key={t}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setConsoleTab(t);
-                  if (!consoleExpanded) toggleConsole();
-                }}
-                className={`flex items-center gap-1 px-2 py-0.5 text-xs rounded-md transition-colors ${
-                  consoleTab === t ? 'bg-gray-200/60 text-gray-800 font-medium' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Icon size={12} />
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            );
-          })}
+          {tabConfig.map(({ key, labelKey, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={(e) => {
+                e.stopPropagation();
+                setConsoleTab(key);
+                if (!consoleExpanded) toggleConsole();
+              }}
+              className={`flex items-center gap-1 px-2 py-0.5 text-xs rounded-md transition-colors ${
+                consoleTab === key ? 'bg-gray-200/60 text-gray-800 font-medium' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Icon size={12} />
+              {t(labelKey)}
+            </button>
+          ))}
         </div>
         <div className="flex-1" />
         {runningJobs.length > 0 && (
           <span className="text-xs text-amber-600 font-medium animate-pulse">
-            {runningJobs.length} job{runningJobs.length > 1 ? 's' : ''} running
+            {runningJobs.length} {t('console.jobsRunning')}
           </span>
         )}
         {consoleTab === 'logs' && consoleLogs.length > 0 && (
           <button
             onClick={(e) => { e.stopPropagation(); clearLogs(); }}
             className="p-0.5 text-gray-400 hover:text-gray-600"
-            title="Clear logs"
+            title={t('console.clearLogs')}
           >
             <Trash2 size={12} />
           </button>
@@ -81,7 +81,7 @@ export default function BottomConsole() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-2 text-xs font-mono">
           {consoleTab === 'logs' && (
             consoleLogs.length === 0 ? (
-              <div className="text-gray-400 italic py-4">No log entries yet</div>
+              <div className="text-gray-400 italic py-4">{t('console.noLogs')}</div>
             ) : (
               consoleLogs.map((log) => (
                 <div key={log.id} className="flex gap-3 py-0.5 leading-5">
@@ -99,7 +99,7 @@ export default function BottomConsole() {
 
           {consoleTab === 'progress' && (
             jobs.length === 0 ? (
-              <div className="text-gray-400 italic py-4">No active jobs</div>
+              <div className="text-gray-400 italic py-4">{t('console.noActiveJobs')}</div>
             ) : (
               <div className="space-y-2 py-2">
                 {jobs.map((job) => (
@@ -126,7 +126,7 @@ export default function BottomConsole() {
           )}
 
           {consoleTab === 'artifacts' && (
-            <div className="text-gray-400 italic py-4">Artifacts will appear here after job completion</div>
+            <div className="text-gray-400 italic py-4">{t('console.artifactsAfterJob')}</div>
           )}
         </div>
       )}

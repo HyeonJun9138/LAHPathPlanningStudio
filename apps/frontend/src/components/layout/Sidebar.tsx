@@ -4,25 +4,28 @@ import {
   GitCompare, FileText, Settings, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
+import { useT } from '../../i18n';
 import type { TabId } from '../../types';
+import type { TranslationKey } from '../../i18n';
 
-const tabs: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'resources', label: 'Resource Manager', icon: FolderOpen },
-  { id: 'terrain', label: 'Terrain Analysis', icon: Mountain },
-  { id: 'hazard', label: 'Hazard & LoS', icon: ShieldAlert },
-  { id: 'mission', label: 'Mission Designer', icon: Target },
-  { id: 'candidate', label: 'Candidate Lab', icon: FlaskConical },
-  { id: 'training', label: 'Training Center', icon: Brain },
-  { id: 'evaluation', label: 'Evaluation', icon: BarChart3 },
-  { id: 'simulation', label: 'Simulation Player', icon: Play },
-  { id: 'compare', label: 'Experiment Compare', icon: GitCompare },
-  { id: 'reports', label: 'Reports', icon: FileText },
-  { id: 'settings', label: 'Settings', icon: Settings },
+const tabs: { id: TabId; labelKey: TranslationKey; icon: typeof LayoutDashboard }[] = [
+  { id: 'dashboard', labelKey: 'tab.dashboard', icon: LayoutDashboard },
+  { id: 'resources', labelKey: 'tab.resources', icon: FolderOpen },
+  { id: 'terrain', labelKey: 'tab.terrain', icon: Mountain },
+  { id: 'hazard', labelKey: 'tab.hazard', icon: ShieldAlert },
+  { id: 'mission', labelKey: 'tab.mission', icon: Target },
+  { id: 'candidate', labelKey: 'tab.candidate', icon: FlaskConical },
+  { id: 'training', labelKey: 'tab.training', icon: Brain },
+  { id: 'evaluation', labelKey: 'tab.evaluation', icon: BarChart3 },
+  { id: 'simulation', labelKey: 'tab.simulation', icon: Play },
+  { id: 'compare', labelKey: 'tab.compare', icon: GitCompare },
+  { id: 'reports', labelKey: 'tab.reports', icon: FileText },
+  { id: 'settings', labelKey: 'tab.settings', icon: Settings },
 ];
 
 export default function Sidebar() {
   const { currentTab, setCurrentTab, sidebarExpanded, toggleSidebar } = useAppStore();
+  const t = useT();
 
   return (
     <aside
@@ -41,8 +44,9 @@ export default function Sidebar() {
 
       {/* Nav items */}
       <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
-        {tabs.map(({ id, label, icon: Icon }) => {
+        {tabs.map(({ id, labelKey, icon: Icon }) => {
           const active = currentTab === id;
+          const label = t(labelKey);
           return (
             <button
               key={id}
@@ -74,7 +78,7 @@ export default function Sidebar() {
           className="w-full flex items-center justify-center gap-2 py-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100/60 text-sm"
         >
           {sidebarExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-          {sidebarExpanded && <span>Collapse</span>}
+          {sidebarExpanded && <span>{t('sidebar.collapse')}</span>}
         </button>
       </div>
     </aside>

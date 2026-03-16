@@ -4,6 +4,7 @@ import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
 import ParameterRow from '../common/ParameterRow';
 import RunActionBar from '../common/RunActionBar';
+import { useT } from '../../i18n';
 
 interface PointXYZ {
   x: string;
@@ -23,6 +24,7 @@ export default function MissionDesigner() {
   const [altLZs, setAltLZs] = useState<PointXYZ[]>([{ x: '5000', y: '22000', agl: '0' }]);
   const [timeLimit, setTimeLimit] = useState('1800');
   const [status, setStatus] = useState('idle');
+  const t = useT();
 
   const missionJson = JSON.stringify(
     {
@@ -57,7 +59,7 @@ export default function MissionDesigner() {
       {/* LEFT */}
       <div className="xl:col-span-4 space-y-4 overflow-y-auto min-w-0">
         <GlassCard>
-          <SectionTitle title="Start Point" />
+          <SectionTitle title={t('mission.startPoint')} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <ParameterRow label="X" value={start.x} onChange={(v) => setStart({ ...start, x: v })} type="number" unit="m" layout="stacked" />
             <ParameterRow label="Y" value={start.y} onChange={(v) => setStart({ ...start, y: v })} type="number" unit="m" layout="stacked" />
@@ -66,7 +68,7 @@ export default function MissionDesigner() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Goal Point" />
+          <SectionTitle title={t('mission.goalPoint')} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <ParameterRow label="X" value={goal.x} onChange={(v) => setGoal({ ...goal, x: v })} type="number" unit="m" layout="stacked" />
             <ParameterRow label="Y" value={goal.y} onChange={(v) => setGoal({ ...goal, y: v })} type="number" unit="m" layout="stacked" />
@@ -75,7 +77,7 @@ export default function MissionDesigner() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Observe Box" />
+          <SectionTitle title={t('mission.observeBox')} />
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <ParameterRow label="CX" value={observe.cx} onChange={(v) => setObserve({ ...observe, cx: v })} type="number" unit="m" layout="stacked" />
@@ -87,16 +89,16 @@ export default function MissionDesigner() {
               <ParameterRow label="SY" value={observe.sy} onChange={(v) => setObserve({ ...observe, sy: v })} type="number" unit="m" layout="stacked" />
               <ParameterRow label="SZ" value={observe.sz} onChange={(v) => setObserve({ ...observe, sz: v })} type="number" unit="m" layout="stacked" />
             </div>
-            <ParameterRow label="Duration" value={observe.duration} onChange={(v) => setObserve({ ...observe, duration: v })} type="number" unit="sec" />
+            <ParameterRow label={t('mission.duration')} value={observe.duration} onChange={(v) => setObserve({ ...observe, duration: v })} type="number" unit="sec" />
           </div>
         </GlassCard>
 
         <GlassCard>
           <SectionTitle
-            title="Safe Hold Points"
+            title={t('mission.safeHoldPoints')}
             actions={
               <button onClick={() => addPoint(safeHolds, setSafeHolds)} className="flex items-center gap-1 px-2 py-1 text-xs text-[#0071e3] bg-blue-50 rounded-lg hover:bg-blue-100">
-                <Plus size={13} /> Add
+                <Plus size={13} /> {t('common.add')}
               </button>
             }
           />
@@ -112,10 +114,10 @@ export default function MissionDesigner() {
 
         <GlassCard>
           <SectionTitle
-            title="Alternate LZ"
+            title={t('mission.alternateLZ')}
             actions={
               <button onClick={() => addPoint(altLZs, setAltLZs)} className="flex items-center gap-1 px-2 py-1 text-xs text-[#0071e3] bg-blue-50 rounded-lg hover:bg-blue-100">
-                <Plus size={13} /> Add
+                <Plus size={13} /> {t('common.add')}
               </button>
             }
           />
@@ -130,7 +132,7 @@ export default function MissionDesigner() {
         </GlassCard>
 
         <GlassCard>
-          <ParameterRow label="Time Limit" value={timeLimit} onChange={setTimeLimit} type="number" unit="sec" tooltip="Maximum episode time in seconds" defaultValue="1800" />
+          <ParameterRow label={t('mission.timeLimit')} value={timeLimit} onChange={setTimeLimit} type="number" unit="sec" tooltip="Maximum episode time in seconds" defaultValue="1800" />
         </GlassCard>
 
         <RunActionBar
@@ -143,7 +145,7 @@ export default function MissionDesigner() {
       {/* CENTER - Map */}
       <div className="xl:col-span-5 overflow-y-auto min-w-0">
         <GlassCard className="h-full">
-          <SectionTitle title="Mission Map" description="Terrain outline with mission points" />
+          <SectionTitle title={t('mission.missionMap')} description={t('mission.mapDesc')} />
           <div className="relative w-full h-[500px] bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden">
             {/* Terrain background grid */}
             <svg className="w-full h-full" viewBox="0 0 500 500">
@@ -158,19 +160,19 @@ export default function MissionDesigner() {
               <rect x={20} y={20} width={460} height={460} fill="none" stroke="#ccc" strokeWidth={1} strokeDasharray="4,4" />
               {/* Start */}
               <circle cx={23} cy={477} r={8} fill="#34c759" stroke="white" strokeWidth={2} />
-              <text x={35} y={481} fontSize={10} fill="#34c759" fontWeight="600">Start</text>
+              <text x={35} y={481} fontSize={10} fill="#34c759" fontWeight="600">{t('common.start')}</text>
               {/* Goal */}
               <circle cx={477} cy={90} r={8} fill="#ff3b30" stroke="white" strokeWidth={2} />
-              <text x={445} y={80} fontSize={10} fill="#ff3b30" fontWeight="600">Goal</text>
+              <text x={445} y={80} fontSize={10} fill="#ff3b30" fontWeight="600">{t('common.goal')}</text>
               {/* Observe box */}
               <rect x={300} y={200} width={60} height={60} fill="rgba(0,113,227,0.15)" stroke="#0071e3" strokeWidth={1.5} strokeDasharray="3,3" rx={4} />
-              <text x={310} y={195} fontSize={9} fill="#0071e3">Observe</text>
+              <text x={310} y={195} fontSize={9} fill="#0071e3">{t('mission.observe')}</text>
               {/* Safe Hold */}
               <circle cx={250} cy={300} r={6} fill="#ff9f0a" stroke="white" strokeWidth={1.5} />
-              <text x={260} y={304} fontSize={9} fill="#ff9f0a">Hold</text>
+              <text x={260} y={304} fontSize={9} fill="#ff9f0a">{t('mission.hold')}</text>
               {/* Alt LZ */}
               <polygon points="100,70 106,82 94,82" fill="#8b5cf6" stroke="white" strokeWidth={1} />
-              <text x={110} y={80} fontSize={9} fill="#8b5cf6">Alt LZ</text>
+              <text x={110} y={80} fontSize={9} fill="#8b5cf6">{t('mission.altLZ')}</text>
               {/* Path hint */}
               <polyline
                 points="23,477 100,400 200,350 250,300 320,230 477,90"
@@ -184,11 +186,11 @@ export default function MissionDesigner() {
 
             {/* Legend */}
             <div className="absolute bottom-3 left-3 bg-white/80 backdrop-blur-md rounded-lg px-3 py-2 text-[10px] space-y-1">
-              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Start</div>
-              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Goal</div>
-              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" /> Observe</div>
-              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Safe Hold</div>
-              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Alt LZ</div>
+              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /> {t('common.start')}</div>
+              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> {t('common.goal')}</div>
+              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#0071e3]" /> {t('mission.observe')}</div>
+              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> {t('mission.safeHoldPoints')}</div>
+              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> {t('mission.altLZ')}</div>
             </div>
           </div>
         </GlassCard>
@@ -197,7 +199,7 @@ export default function MissionDesigner() {
       {/* RIGHT - JSON Preview */}
       <div className="xl:col-span-3 overflow-y-auto min-w-0">
         <GlassCard className="h-full">
-          <SectionTitle title="Mission JSON" />
+          <SectionTitle title={t('mission.missionJson')} />
           <pre className="text-xs text-gray-700 bg-gray-50/60 rounded-xl p-3 overflow-auto max-h-[600px] font-mono leading-5">
             {missionJson}
           </pre>

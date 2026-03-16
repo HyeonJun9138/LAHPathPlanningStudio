@@ -3,6 +3,7 @@ import { Play, Pause, SkipForward, Download, ChevronRight } from 'lucide-react';
 import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
 import PlotCard from '../common/PlotCard';
+import { useT } from '../../i18n';
 
 function generateEpisode(n: number) {
   const steps = [];
@@ -35,6 +36,7 @@ export default function SimulationPlayer() {
   const [currentStep, setCurrentStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const t = useT();
 
   const current = steps[currentStep];
   const pathX = steps.slice(0, currentStep + 1).map((s) => s.x);
@@ -118,7 +120,7 @@ export default function SimulationPlayer() {
         {/* Map */}
         <div className="col-span-7">
           <PlotCard
-            title="Top-Down Path View"
+            title={t('sim.topDownPath')}
             data={[
               {
                 x: steps.map((s) => s.x),
@@ -126,7 +128,7 @@ export default function SimulationPlayer() {
                 mode: 'lines',
                 type: 'scatter',
                 line: { color: '#d1d5db', width: 1, dash: 'dot' },
-                name: 'Full Path',
+                name: t('sim.fullPath'),
                 showlegend: false,
               },
               {
@@ -135,7 +137,7 @@ export default function SimulationPlayer() {
                 mode: 'lines',
                 type: 'scatter',
                 line: { color: '#0071e3', width: 2 },
-                name: 'Traveled',
+                name: t('sim.traveled'),
               },
               {
                 x: [current.x],
@@ -143,7 +145,7 @@ export default function SimulationPlayer() {
                 mode: 'markers',
                 type: 'scatter',
                 marker: { size: 12, color: '#0071e3', symbol: 'diamond', line: { width: 2, color: 'white' } },
-                name: 'Current',
+                name: t('sim.current'),
               },
               {
                 x: [steps[0].x],
@@ -151,9 +153,9 @@ export default function SimulationPlayer() {
                 mode: 'text+markers' as const,
                 type: 'scatter',
                 marker: { size: 10, color: '#34c759' },
-                text: ['Start'],
+                text: [t('common.start')],
                 textposition: 'top right',
-                name: 'Start',
+                name: t('common.start'),
               },
               {
                 x: [steps[steps.length - 1].x],
@@ -161,9 +163,9 @@ export default function SimulationPlayer() {
                 mode: 'text+markers' as const,
                 type: 'scatter',
                 marker: { size: 10, color: '#ff3b30' },
-                text: ['Goal'],
+                text: [t('common.goal')],
                 textposition: 'top right',
-                name: 'Goal',
+                name: t('common.goal'),
               },
             ]}
             layout={{
@@ -179,7 +181,7 @@ export default function SimulationPlayer() {
         {/* Altitude profile */}
         <div className="col-span-5">
           <PlotCard
-            title="Altitude Profile"
+            title={t('sim.altitudeProfile')}
             data={[
               {
                 x: steps.map((s) => s.step),
@@ -189,7 +191,7 @@ export default function SimulationPlayer() {
                 line: { color: '#8b5cf6', width: 2 },
                 fill: 'tozeroy',
                 fillcolor: 'rgba(139,92,246,0.08)',
-                name: 'Altitude (ASL)',
+                name: t('sim.altitudeASL'),
               },
               {
                 x: steps.map((s) => s.step),
@@ -197,7 +199,7 @@ export default function SimulationPlayer() {
                 type: 'scatter',
                 mode: 'lines',
                 line: { color: '#78716c', width: 1 },
-                name: 'Ground',
+                name: t('sim.ground'),
               },
               {
                 x: [currentStep],
@@ -205,7 +207,7 @@ export default function SimulationPlayer() {
                 mode: 'markers',
                 type: 'scatter',
                 marker: { size: 10, color: '#8b5cf6', symbol: 'diamond' },
-                name: 'Now',
+                name: t('sim.now'),
                 showlegend: false,
               },
             ]}
@@ -225,7 +227,7 @@ export default function SimulationPlayer() {
         {/* Events */}
         <div className="col-span-7">
           <GlassCard padding="p-4">
-            <SectionTitle title="Event Timeline" />
+            <SectionTitle title={t('sim.eventTimeline')} />
             <div className="flex gap-2 overflow-x-auto pb-2">
               {steps.filter((s) => s.event).map((s) => (
                 <button
@@ -238,7 +240,7 @@ export default function SimulationPlayer() {
                 </button>
               ))}
               {steps.filter((s) => s.event).length === 0 && (
-                <span className="text-xs text-gray-400 italic">No events in this episode</span>
+                <span className="text-xs text-gray-400 italic">{t('sim.noEvents')}</span>
               )}
             </div>
           </GlassCard>
@@ -247,14 +249,14 @@ export default function SimulationPlayer() {
         {/* Current state */}
         <div className="col-span-5">
           <GlassCard padding="p-4">
-            <SectionTitle title="Current State" />
+            <SectionTitle title={t('sim.currentState')} />
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Position</span><span className="font-mono text-xs">{current.x}, {current.y}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Altitude</span><span className="font-mono text-xs">{current.z}m ({current.agl_m}m AGL)</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Mode</span><span className="font-medium">{current.mode}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Primitive</span><span className="font-medium">{current.primitive}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Risk</span><span className={`font-medium ${current.risk > 0.3 ? 'text-red-500' : 'text-green-600'}`}>{current.risk.toFixed(3)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Reward</span><span className="font-medium">{current.reward.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('sim.position')}</span><span className="font-mono text-xs">{current.x}, {current.y}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('sim.altitude')}</span><span className="font-mono text-xs">{current.z}m ({current.agl_m}m AGL)</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('sim.mode')}</span><span className="font-medium">{current.mode}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('sim.primitive')}</span><span className="font-medium">{current.primitive}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('sim.risk')}</span><span className={`font-medium ${current.risk > 0.3 ? 'text-red-500' : 'text-green-600'}`}>{current.risk.toFixed(3)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('sim.reward')}</span><span className="font-medium">{current.reward.toFixed(2)}</span></div>
             </div>
           </GlassCard>
         </div>

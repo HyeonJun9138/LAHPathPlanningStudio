@@ -4,6 +4,7 @@ import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
 import RunActionBar from '../common/RunActionBar';
 import PlotCard from '../common/PlotCard';
+import { useT } from '../../i18n';
 
 interface HazardRow {
   id: string;
@@ -45,6 +46,7 @@ export default function HazardBuilder() {
   const [altBand, setAltBand] = useState('mid_transit');
   const [fusionMode, setFusionMode] = useState('probabilistic_union');
   const [status, setStatus] = useState('idle');
+  const t = useT();
 
   const toggleHazard = (id: string) =>
     setHazards((h) => h.map((hz) => (hz.id === id ? { ...hz, enabled: !hz.enabled } : hz)));
@@ -69,13 +71,13 @@ export default function HazardBuilder() {
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
           <SectionTitle
-            title="Hazard Sources"
+            title={t('hazard.sources')}
             actions={
               <button
                 onClick={addHazard}
                 className="flex items-center gap-1 px-2 py-1 text-xs text-[#0071e3] bg-blue-50 rounded-lg hover:bg-blue-100"
               >
-                <Plus size={13} /> Add
+                <Plus size={13} /> {t('common.add')}
               </button>
             }
           />
@@ -109,10 +111,10 @@ export default function HazardBuilder() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Settings" />
+          <SectionTitle title={t('hazard.settings')} />
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-500 font-medium">Altitude Band</label>
+              <label className="text-xs text-gray-500 font-medium">{t('hazard.altitudeBand')}</label>
               <select
                 value={altBand}
                 onChange={(e) => setAltBand(e.target.value)}
@@ -124,7 +126,7 @@ export default function HazardBuilder() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 font-medium">Fusion Mode</label>
+              <label className="text-xs text-gray-500 font-medium">{t('hazard.fusionMode')}</label>
               <select
                 value={fusionMode}
                 onChange={(e) => setFusionMode(e.target.value)}
@@ -149,7 +151,7 @@ export default function HazardBuilder() {
       {/* CENTER */}
       <div className="col-span-6 space-y-4 overflow-y-auto">
         <PlotCard
-          title={`Fused Risk Map — ${altBand}`}
+          title={`${t('hazard.fusedRiskMap')} — ${altBand}`}
           data={[
             {
               z: riskZ,
@@ -169,7 +171,7 @@ export default function HazardBuilder() {
       {/* RIGHT */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <PlotCard
-          title="Risk Distribution"
+          title={t('hazard.riskDistribution')}
           data={[
             {
               x: riskValues,
@@ -182,14 +184,14 @@ export default function HazardBuilder() {
         />
 
         <GlassCard>
-          <SectionTitle title="Statistics" />
+          <SectionTitle title={t('hazard.statistics')} />
           <div className="space-y-2 text-sm">
             {[
-              { label: 'Min Risk', value: '0.00' },
-              { label: 'Max Risk', value: '0.94' },
-              { label: 'Mean Risk', value: '0.18' },
-              { label: 'High Risk Cells', value: '12.3%' },
-              { label: 'Active Sources', value: String(hazards.filter((h) => h.enabled).length) },
+              { label: t('hazard.minRisk'), value: '0.00' },
+              { label: t('hazard.maxRisk'), value: '0.94' },
+              { label: t('hazard.meanRisk'), value: '0.18' },
+              { label: t('hazard.highRiskCells'), value: '12.3%' },
+              { label: t('hazard.activeSources'), value: String(hazards.filter((h) => h.enabled).length) },
             ].map((s) => (
               <div key={s.label} className="flex justify-between">
                 <span className="text-gray-500">{s.label}</span>
@@ -200,12 +202,12 @@ export default function HazardBuilder() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Cell Risk Decomposition" description="Click on the map to inspect" />
+          <SectionTitle title={t('hazard.cellDecomposition')} description={t('hazard.clickToInspect')} />
           <div className="flex items-center justify-center py-8">
             <Eye size={24} className="text-gray-300" />
           </div>
           <p className="text-xs text-gray-400 text-center">
-            Click any cell on the risk map to see per-source risk breakdown
+            {t('hazard.clickCellBreakdown')}
           </p>
         </GlassCard>
       </div>

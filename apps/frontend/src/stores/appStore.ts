@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { TabId, Project, CudaInfo, Job, ConsoleEntry, AppSettings } from '../types';
+import type { Locale } from '../i18n';
 
 interface AppState {
   // Navigation
@@ -33,6 +34,10 @@ interface AppState {
   setConsoleTab: (tab: 'logs' | 'progress' | 'artifacts') => void;
   addLog: (entry: Omit<ConsoleEntry, 'id' | 'timestamp'>) => void;
   clearLogs: () => void;
+
+  // Locale
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
 
   // Settings
   settings: AppSettings;
@@ -91,6 +96,10 @@ export const useAppStore = create<AppState>((set) => ({
       ],
     })),
   clearLogs: () => set({ consoleLogs: [] }),
+
+  // Locale
+  locale: 'ko' as Locale,
+  setLocale: (locale) => set({ locale }),
 
   // Settings
   settings: {

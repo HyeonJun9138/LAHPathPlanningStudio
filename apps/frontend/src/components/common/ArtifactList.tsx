@@ -1,5 +1,6 @@
 import { FileText, Image, Database, File, ExternalLink } from 'lucide-react';
 import type { TerrainArtifact } from '../../types';
+import { useT } from '../../i18n';
 
 const iconMap: Record<string, typeof FileText> = {
   tif: Database,
@@ -16,10 +17,12 @@ interface ArtifactListProps {
 }
 
 export default function ArtifactList({ artifacts, className = '' }: ArtifactListProps) {
+  const t = useT();
+
   if (artifacts.length === 0) {
     return (
       <div className={`text-sm text-gray-400 italic ${className}`}>
-        No artifacts generated yet
+        {t('common.noArtifacts')}
       </div>
     );
   }
@@ -39,7 +42,7 @@ export default function ArtifactList({ artifacts, className = '' }: ArtifactList
             <span className="text-xs text-gray-400">{a.size_mb.toFixed(1)} MB</span>
             <button
               className="p-1 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-500"
-              title="Open"
+              title={t('common.open')}
             >
               <ExternalLink size={13} />
             </button>

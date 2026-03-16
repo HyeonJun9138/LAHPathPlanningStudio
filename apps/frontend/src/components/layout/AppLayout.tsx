@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import BottomConsole from './BottomConsole';
+import AIAssistant from '../common/AIAssistant';
 import { useAppStore } from '../../stores/appStore';
 import type { TabId } from '../../types';
 
@@ -57,6 +58,7 @@ export default function AppLayout() {
         </main>
         <BottomConsole />
       </div>
+      <AIAssistant />
     </div>
   );
 }

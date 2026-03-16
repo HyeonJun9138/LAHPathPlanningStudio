@@ -4,6 +4,7 @@ import SectionTitle from '../common/SectionTitle';
 import ParameterRow from '../common/ParameterRow';
 import RunActionBar from '../common/RunActionBar';
 import PlotCard from '../common/PlotCard';
+import { useT } from '../../i18n';
 
 const primitiveTypes = [
   { name: 'transit', count: 16, desc: 'Straight-line movement between waypoints' },
@@ -44,6 +45,7 @@ export default function CandidateLab() {
   const [status, setStatus] = useState('idle');
   const [sortCol, setSortCol] = useState<string>('risk');
   const [sortAsc, setSortAsc] = useState(true);
+  const t = useT();
 
   const candidates = useMemo(() => generateCandidates(), []);
 
@@ -66,7 +68,7 @@ export default function CandidateLab() {
       {/* LEFT */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Primitives" />
+          <SectionTitle title={t('candidate.primitives')} />
           <div className="space-y-1.5">
             {primitiveTypes.map((p) => (
               <div key={p.name} className="flex items-center justify-between px-3 py-2 bg-gray-50/60 rounded-lg text-sm">
@@ -81,10 +83,10 @@ export default function CandidateLab() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Generation Config" />
-          <ParameterRow label="Max Candidates" value={maxCandidates} onChange={setMaxCandidates} type="number" tooltip="Maximum number of candidate waypoints per decision step. 16-64 recommended." defaultValue="32" />
-          <ParameterRow label="Distance Bands" value={distBands} onChange={setDistBands} unit="m" tooltip="Comma-separated distance bands in meters" />
-          <ParameterRow label="Heading Samples" value={headingSamples} onChange={setHeadingSamples} unit="°" tooltip="Comma-separated heading offsets in degrees" />
+          <SectionTitle title={t('candidate.generationConfig')} />
+          <ParameterRow label={t('candidate.maxCandidates')} value={maxCandidates} onChange={setMaxCandidates} type="number" tooltip="Maximum number of candidate waypoints per decision step. 16-64 recommended." defaultValue="32" />
+          <ParameterRow label={t('candidate.distanceBands')} value={distBands} onChange={setDistBands} unit="m" tooltip="Comma-separated distance bands in meters" />
+          <ParameterRow label={t('candidate.headingSamples')} value={headingSamples} onChange={setHeadingSamples} unit="°" tooltip="Comma-separated heading offsets in degrees" />
         </GlassCard>
 
         <RunActionBar
@@ -98,7 +100,7 @@ export default function CandidateLab() {
       {/* CENTER - Candidate Map */}
       <div className="col-span-5 space-y-4 overflow-y-auto">
         <PlotCard
-          title="Candidate Waypoints on Terrain"
+          title={t('candidate.waypointsOnTerrain')}
           data={[
             {
               x: candidates.filter((c) => !c.masked).map((c) => c.x),
@@ -134,7 +136,7 @@ export default function CandidateLab() {
         />
 
         <PlotCard
-          title="Reward Breakdown"
+          title={t('candidate.rewardBreakdown')}
           data={[
             {
               x: ['Progress', 'Risk', 'Clearance', 'Visibility', 'Distance'],
@@ -152,7 +154,7 @@ export default function CandidateLab() {
       {/* RIGHT - Feature Table */}
       <div className="col-span-4 overflow-y-auto">
         <GlassCard padding="p-3">
-          <SectionTitle title="Candidate Features" description="Click column headers to sort" />
+          <SectionTitle title={t('candidate.features')} description={t('candidate.clickToSort')} />
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-white/90 backdrop-blur">

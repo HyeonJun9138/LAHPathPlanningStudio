@@ -5,6 +5,7 @@ import SectionTitle from '../common/SectionTitle';
 import ParameterRow from '../common/ParameterRow';
 import PlotCard from '../common/PlotCard';
 import StatusBadge from '../common/StatusBadge';
+import { useT } from '../../i18n';
 
 function generateTrainingData(n: number) {
   const ts: number[] = [];
@@ -43,6 +44,7 @@ export default function TrainingCenter() {
   const [curriculum, setCurriculum] = useState('curriculum_b');
   const [checkpointInterval, setCheckpointInterval] = useState('50000');
   const [status, setStatus] = useState('idle');
+  const t = useT();
 
   const data = useMemo(() => generateTrainingData(60), []);
 
@@ -56,7 +58,7 @@ export default function TrainingCenter() {
       {/* LEFT */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Algorithm" />
+          <SectionTitle title={t('training.algorithm')} />
           <select
             value={algorithm}
             onChange={(e) => setAlgorithm(e.target.value)}
@@ -68,29 +70,29 @@ export default function TrainingCenter() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Hyperparameters" />
+          <SectionTitle title={t('training.hyperparameters')} />
           <div className="space-y-0.5">
             <div>
-              <label className="text-xs text-gray-500 font-medium">Device</label>
+              <label className="text-xs text-gray-500 font-medium">{t('training.device')}</label>
               <select value={device} onChange={(e) => setDevice(e.target.value)} className="w-full mt-1 px-3 py-1.5 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
                 <option value="cpu">CPU</option>
                 <option value="cuda:0">CUDA:0</option>
               </select>
             </div>
-            <ParameterRow label="Seed" value={seed} onChange={setSeed} type="number" tooltip="Random seed for reproducibility" defaultValue="42" />
+            <ParameterRow label={t('training.seed')} value={seed} onChange={setSeed} type="number" tooltip="Random seed for reproducibility" defaultValue="42" />
             <ParameterRow label="n_envs" value={nEnvs} onChange={setNEnvs} type="number" tooltip="Number of parallel environments. More envs = faster but more VRAM." defaultValue="4" min={1} max={32} />
-            <ParameterRow label="Total Steps" value={totalSteps} onChange={setTotalSteps} type="number" tooltip="Total training timesteps" defaultValue="1000000" />
-            <ParameterRow label="Batch Size" value={batchSize} onChange={setBatchSize} type="number" tooltip="Minibatch size for PPO updates" defaultValue="256" />
-            <ParameterRow label="Learning Rate" value={lr} onChange={setLr} type="number" tooltip="Optimizer learning rate. 1e-4 to 5e-4 typical." defaultValue="0.0003" step={0.0001} />
+            <ParameterRow label={t('training.totalSteps')} value={totalSteps} onChange={setTotalSteps} type="number" tooltip="Total training timesteps" defaultValue="1000000" />
+            <ParameterRow label={t('training.batchSize')} value={batchSize} onChange={setBatchSize} type="number" tooltip="Minibatch size for PPO updates" defaultValue="256" />
+            <ParameterRow label={t('training.learningRate')} value={lr} onChange={setLr} type="number" tooltip="Optimizer learning rate. 1e-4 to 5e-4 typical." defaultValue="0.0003" step={0.0001} />
             <div>
-              <label className="text-xs text-gray-500 font-medium">Curriculum</label>
+              <label className="text-xs text-gray-500 font-medium">{t('training.curriculum')}</label>
               <select value={curriculum} onChange={(e) => setCurriculum(e.target.value)} className="w-full mt-1 px-3 py-1.5 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
                 <option value="curriculum_a">Curriculum A</option>
                 <option value="curriculum_b">Curriculum B</option>
                 <option value="curriculum_c">Curriculum C</option>
               </select>
             </div>
-            <ParameterRow label="Checkpoint Interval" value={checkpointInterval} onChange={setCheckpointInterval} type="number" tooltip="Save checkpoint every N timesteps" defaultValue="50000" />
+            <ParameterRow label={t('training.checkpointInterval')} value={checkpointInterval} onChange={setCheckpointInterval} type="number" tooltip="Save checkpoint every N timesteps" defaultValue="50000" />
           </div>
         </GlassCard>
 
@@ -102,26 +104,26 @@ export default function TrainingCenter() {
               disabled={status === 'running'}
               className="flex-1 px-4 py-2 text-sm font-medium text-white bg-[#0071e3] rounded-xl hover:bg-[#0077ED] disabled:opacity-40"
             >
-              {status === 'running' ? 'Training...' : 'Start'}
+              {status === 'running' ? t('training.training') : t('common.start')}
             </button>
             <button
               disabled={status !== 'running'}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-40"
             >
-              Pause
+              {t('common.pause')}
             </button>
             <button
               disabled={status !== 'running'}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-40"
             >
-              Resume
+              {t('common.resume')}
             </button>
             <button
               onClick={() => setStatus('stopped')}
               disabled={status !== 'running'}
               className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100 disabled:opacity-40"
             >
-              Stop
+              {t('common.stop')}
             </button>
           </div>
           <div className="mt-3 flex items-center justify-between">
@@ -136,7 +138,7 @@ export default function TrainingCenter() {
       {/* CENTER - Charts */}
       <div className="col-span-6 space-y-4 overflow-y-auto">
         <PlotCard
-          title="Reward Curve"
+          title={t('training.rewardCurve')}
           data={[
             {
               x: data.ts,
@@ -154,7 +156,7 @@ export default function TrainingCenter() {
 
         <div className="grid grid-cols-2 gap-4">
           <PlotCard
-            title="Success Rate"
+            title={t('training.successRate')}
             data={[
               {
                 x: data.ts,
@@ -171,7 +173,7 @@ export default function TrainingCenter() {
           />
 
           <PlotCard
-            title="Episode Length"
+            title={t('training.episodeLength')}
             data={[
               {
                 x: data.ts,
@@ -192,20 +194,20 @@ export default function TrainingCenter() {
         <GlassCard>
           <div className="flex items-center gap-2 mb-3">
             <Cpu size={16} className="text-blue-500" />
-            <SectionTitle title="GPU Status" className="mb-0" />
+            <SectionTitle title={t('training.gpuStatus')} className="mb-0" />
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Device</span>
+              <span className="text-gray-500">{t('training.device')}</span>
               <span className="font-medium">NVIDIA RTX 4090</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Utilization</span>
+              <span className="text-gray-500">{t('training.utilization')}</span>
               <span className="font-medium">78%</span>
             </div>
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-gray-500">Memory</span>
+                <span className="text-gray-500">{t('training.memory')}</span>
                 <span className="text-xs text-gray-400">6.2 / 24.0 GB</span>
               </div>
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -218,30 +220,30 @@ export default function TrainingCenter() {
         <GlassCard>
           <div className="flex items-center gap-2 mb-3">
             <Award size={16} className="text-amber-500" />
-            <SectionTitle title="Best Checkpoint" className="mb-0" />
+            <SectionTitle title={t('training.bestCheckpoint')} className="mb-0" />
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Model</span>
+              <span className="text-gray-500">{t('training.model')}</span>
               <span className="font-medium font-mono text-xs">best_model.zip</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Reward</span>
+              <span className="text-gray-500">{t('training.reward')}</span>
               <span className="font-medium text-green-600">89.3</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Success</span>
+              <span className="text-gray-500">{t('training.success')}</span>
               <span className="font-medium text-green-600">71.0%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Timestep</span>
+              <span className="text-gray-500">{t('training.timestep')}</span>
               <span className="font-medium">280,000</span>
             </div>
           </div>
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Checkpoints" />
+          <SectionTitle title={t('training.checkpoints')} />
           <div className="space-y-1.5">
             {checkpoints.map((ck) => (
               <div key={ck.path} className="flex items-center gap-2 px-2 py-2 bg-gray-50/60 rounded-lg text-xs">
@@ -256,14 +258,14 @@ export default function TrainingCenter() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Training Summary" />
+          <SectionTitle title={t('training.summary')} />
           <div className="space-y-2 text-sm">
             {[
-              { label: 'Total Timesteps', value: '300,000' },
-              { label: 'Episodes', value: '1,847' },
-              { label: 'Mean Reward', value: '82.4' },
-              { label: 'Best Reward', value: '89.3' },
-              { label: 'Wall Time', value: '2h 14m' },
+              { label: t('training.totalTimesteps'), value: '300,000' },
+              { label: t('training.episodes'), value: '1,847' },
+              { label: t('training.meanReward'), value: '82.4' },
+              { label: t('training.bestReward'), value: '89.3' },
+              { label: t('training.wallTime'), value: '2h 14m' },
             ].map((m) => (
               <div key={m.label} className="flex justify-between">
                 <span className="text-gray-500">{m.label}</span>

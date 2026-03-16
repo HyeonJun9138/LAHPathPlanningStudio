@@ -3,16 +3,24 @@ import { FileText, Download, Image, FileJson, Printer } from 'lucide-react';
 import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
 import RunActionBar from '../common/RunActionBar';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 
-const templateOptions = ['Full Evaluation Report', 'Training Summary', 'Comparison Brief', 'Risk Analysis'];
-const sectionOptions = [
-  { key: 'overview', label: 'Overview & Config' },
-  { key: 'metrics', label: 'Metrics Summary' },
-  { key: 'charts', label: 'Performance Charts' },
-  { key: 'terrain', label: 'Terrain Analysis' },
-  { key: 'risk', label: 'Risk Breakdown' },
-  { key: 'comparison', label: 'Baseline Comparison' },
-  { key: 'conclusion', label: 'Conclusion' },
+const templateKeys: { value: string; labelKey: TranslationKey }[] = [
+  { value: 'Full Evaluation Report', labelKey: 'reports.fullEvalReport' },
+  { value: 'Training Summary', labelKey: 'reports.trainingSummary' },
+  { value: 'Comparison Brief', labelKey: 'reports.comparisonBrief' },
+  { value: 'Risk Analysis', labelKey: 'reports.riskAnalysis' },
+];
+
+const sectionOptions: { key: string; labelKey: TranslationKey }[] = [
+  { key: 'overview', labelKey: 'reports.overviewConfig' },
+  { key: 'metrics', labelKey: 'reports.metricsSummary' },
+  { key: 'charts', labelKey: 'reports.performanceCharts' },
+  { key: 'terrain', labelKey: 'reports.terrainAnalysis' },
+  { key: 'risk', labelKey: 'reports.riskBreakdown' },
+  { key: 'comparison', labelKey: 'reports.baselineComparison' },
+  { key: 'conclusion', labelKey: 'reports.conclusion' },
 ];
 
 interface GeneratedReport {
@@ -79,25 +87,33 @@ The MaskablePPO agent achieves a **71% success rate** on the Hongik_48km terrain
 
 export default function Reports() {
   const [selectedRun, setSelectedRun] = useState('04_training__Hongik_48km__a1b2c3');
-  const [template, setTemplate] = useState(templateOptions[0]);
+  const [template, setTemplate] = useState(templateKeys[0].value);
   const [sections, setSections] = useState<Record<string, boolean>>(
     Object.fromEntries(sectionOptions.map((s) => [s.key, true]))
   );
   const [includePNG, setIncludePNG] = useState(true);
   const [status, setStatus] = useState('idle');
+  const t = useT();
 
   const toggleSection = (key: string) =>
     setSections((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const exportButtons: { labelKey: TranslationKey; icon: typeof FileText; color: string }[] = [
+    { labelKey: 'reports.exportPDF', icon: FileText, color: 'text-red-500' },
+    { labelKey: 'reports.exportMarkdown', icon: FileText, color: 'text-gray-600' },
+    { labelKey: 'reports.exportJSON', icon: FileJson, color: 'text-blue-500' },
+    { labelKey: 'reports.exportPNGBundle', icon: Image, color: 'text-green-500' },
+  ];
 
   return (
     <div className="grid grid-cols-12 gap-6 h-full">
       {/* LEFT - Config */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Report Configuration" />
+          <SectionTitle title={t('reports.configuration')} />
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-500 font-medium">Run</label>
+              <label className="text-xs text-gray-500 font-medium">{t('reports.run')}</label>
               <select
                 value={selectedRun}
                 onChange={(e) => setSelectedRun(e.target.value)}
@@ -108,14 +124,14 @@ export default function Reports() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 font-medium">Template</label>
+              <label className="text-xs text-gray-500 font-medium">{t('reports.template')}</label>
               <select
                 value={template}
                 onChange={(e) => setTemplate(e.target.value)}
                 className="w-full mt-1 px-3 py-2 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               >
-                {templateOptions.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                {templateKeys.map((tk) => (
+                  <option key={tk.value} value={tk.value}>{t(tk.labelKey)}</option>
                 ))}
               </select>
             </div>
@@ -123,7 +139,7 @@ export default function Reports() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Sections" />
+          <SectionTitle title={t('reports.sections')} />
           <div className="space-y-1.5">
             {sectionOptions.map((s) => (
               <label key={s.key} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100/60 cursor-pointer text-sm">
@@ -133,7 +149,7 @@ export default function Reports() {
                   onChange={() => toggleSection(s.key)}
                   className="rounded border-gray-300 text-blue-500"
                 />
-                <span className="text-gray-700">{s.label}</span>
+                <span className="text-gray-700">{t(s.labelKey)}</span>
               </label>
             ))}
           </div>
@@ -145,7 +161,7 @@ export default function Reports() {
               className="rounded border-gray-300 text-blue-500"
             />
             <Image size={14} className="text-gray-400" />
-            <span className="text-gray-700">Include chart PNGs</span>
+            <span className="text-gray-700">{t('reports.includeChartPNG')}</span>
           </label>
         </GlassCard>
 
@@ -160,10 +176,10 @@ export default function Reports() {
       <div className="col-span-6 space-y-4 overflow-y-auto">
         <GlassCard>
           <div className="flex items-center justify-between mb-4">
-            <SectionTitle title="Report Preview" className="mb-0" />
+            <SectionTitle title={t('reports.preview')} className="mb-0" />
             <div className="flex items-center gap-2">
               <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">
-                <Printer size={13} /> Print
+                <Printer size={13} /> {t('common.print')}
               </button>
             </div>
           </div>
@@ -203,20 +219,15 @@ export default function Reports() {
       {/* RIGHT - Export & History */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Export" />
+          <SectionTitle title={t('common.export')} />
           <div className="space-y-2">
-            {[
-              { label: 'Export PDF', icon: FileText, color: 'text-red-500' },
-              { label: 'Export Markdown', icon: FileText, color: 'text-gray-600' },
-              { label: 'Export JSON', icon: FileJson, color: 'text-blue-500' },
-              { label: 'Export PNG Bundle', icon: Image, color: 'text-green-500' },
-            ].map((opt) => (
+            {exportButtons.map((opt) => (
               <button
-                key={opt.label}
+                key={opt.labelKey}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 bg-white/60 border border-gray-200/60 rounded-xl hover:bg-gray-100/60 transition-colors"
               >
                 <opt.icon size={16} className={opt.color} />
-                {opt.label}
+                {t(opt.labelKey)}
                 <Download size={13} className="ml-auto text-gray-400" />
               </button>
             ))}
@@ -224,7 +235,7 @@ export default function Reports() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Generated Reports" />
+          <SectionTitle title={t('reports.generatedReports')} />
           <div className="space-y-2">
             {demoReports.map((r) => (
               <div

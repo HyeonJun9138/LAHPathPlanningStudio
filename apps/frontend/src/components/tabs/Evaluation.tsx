@@ -3,6 +3,7 @@ import GlassCard from '../common/GlassCard';
 import SectionTitle from '../common/SectionTitle';
 import RunActionBar from '../common/RunActionBar';
 import PlotCard from '../common/PlotCard';
+import { useT } from '../../i18n';
 
 const baselines = ['RL (Ours)', 'Random', 'A*', 'FSM'];
 const terrainSplits = ['Hongik_48km', 'Inje_48km', 'Jipo_48km'];
@@ -24,6 +25,7 @@ export default function Evaluation() {
   const [terrainSplit, setTerrainSplit] = useState('all');
   const [scenario, setScenario] = useState('standard');
   const [status, setStatus] = useState('idle');
+  const t = useT();
 
   const toggleBaseline = (b: string) =>
     setCheckedBaselines((prev) => ({ ...prev, [b]: !prev[b] }));
@@ -35,10 +37,10 @@ export default function Evaluation() {
       {/* LEFT */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Configuration" />
+          <SectionTitle title={t('eval.configuration')} />
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-500 font-medium">Run</label>
+              <label className="text-xs text-gray-500 font-medium">{t('eval.run')}</label>
               <select
                 value={selectedRun}
                 onChange={(e) => setSelectedRun(e.target.value)}
@@ -49,7 +51,7 @@ export default function Evaluation() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 font-medium">Checkpoint</label>
+              <label className="text-xs text-gray-500 font-medium">{t('eval.checkpoint')}</label>
               <select
                 value={checkpoint}
                 onChange={(e) => setCheckpoint(e.target.value)}
@@ -64,7 +66,7 @@ export default function Evaluation() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Baselines" />
+          <SectionTitle title={t('eval.baselines')} />
           <div className="space-y-1.5">
             {baselines.map((b) => (
               <label key={b} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100/60 cursor-pointer text-sm">
@@ -76,17 +78,17 @@ export default function Evaluation() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Filters" />
+          <SectionTitle title={t('eval.filters')} />
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-gray-500 font-medium">Terrain Split</label>
+              <label className="text-xs text-gray-500 font-medium">{t('eval.terrainSplit')}</label>
               <select value={terrainSplit} onChange={(e) => setTerrainSplit(e.target.value)} className="w-full mt-1 px-3 py-2 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-                <option value="all">All Terrains</option>
-                {terrainSplits.map((t) => <option key={t} value={t}>{t}</option>)}
+                <option value="all">{t('eval.allTerrains')}</option>
+                {terrainSplits.map((ts) => <option key={ts} value={ts}>{ts}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs text-gray-500 font-medium">Scenario</label>
+              <label className="text-xs text-gray-500 font-medium">{t('eval.scenario')}</label>
               <select value={scenario} onChange={(e) => setScenario(e.target.value)} className="w-full mt-1 px-3 py-2 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30">
                 {scenarios.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -104,7 +106,7 @@ export default function Evaluation() {
       {/* CENTER */}
       <div className="col-span-6 space-y-4 overflow-y-auto">
         <PlotCard
-          title="Success Rate Comparison"
+          title={t('eval.successRateComparison')}
           data={[
             {
               x: activeBaselines,
@@ -123,7 +125,7 @@ export default function Evaluation() {
 
         <div className="grid grid-cols-2 gap-4">
           <PlotCard
-            title="Integrated Risk"
+            title={t('eval.integratedRisk')}
             data={[
               {
                 y: activeBaselines.map((b) => {
@@ -140,7 +142,7 @@ export default function Evaluation() {
           />
 
           <PlotCard
-            title="Path Length"
+            title={t('eval.pathLength')}
             data={[
               {
                 x: activeBaselines,
@@ -158,15 +160,15 @@ export default function Evaluation() {
       {/* RIGHT */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Metrics Summary" />
+          <SectionTitle title={t('eval.metricsSummary')} />
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-200/50">
-                  <th className="pb-2 font-medium">Agent</th>
-                  <th className="pb-2 font-medium">Succ</th>
-                  <th className="pb-2 font-medium">Risk</th>
-                  <th className="pb-2 font-medium">Reward</th>
+                  <th className="pb-2 font-medium">{t('eval.agent')}</th>
+                  <th className="pb-2 font-medium">{t('eval.succ')}</th>
+                  <th className="pb-2 font-medium">{t('eval.risk')}</th>
+                  <th className="pb-2 font-medium">{t('training.reward')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -188,7 +190,7 @@ export default function Evaluation() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Terrain Split Heatmap" />
+          <SectionTitle title={t('eval.terrainSplitHeatmap')} />
           <PlotCard
             title=""
             data={[

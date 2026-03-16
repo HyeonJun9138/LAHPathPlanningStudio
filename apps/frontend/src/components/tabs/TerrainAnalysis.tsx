@@ -5,6 +5,7 @@ import ParameterRow from '../common/ParameterRow';
 import RunActionBar from '../common/RunActionBar';
 import PlotCard from '../common/PlotCard';
 import ArtifactList from '../common/ArtifactList';
+import { useT } from '../../i18n';
 
 const derivatives = [
   'slope', 'aspect', 'roughness', 'curvature', 'tpi',
@@ -54,6 +55,7 @@ export default function TerrainAnalysis() {
   );
   const [activePreview, setActivePreview] = useState('Elevation');
   const [status, setStatus] = useState('idle');
+  const t = useT();
 
   const toggleDeriv = (d: string) =>
     setCheckedDerivs((prev) => ({ ...prev, [d]: !prev[d] }));
@@ -71,10 +73,10 @@ export default function TerrainAnalysis() {
       {/* LEFT PANEL */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Configuration" />
+          <SectionTitle title={t('terrain.configuration')} />
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-xs text-gray-500 font-medium">Terrain File</label>
+              <label className="text-xs text-gray-500 font-medium">{t('terrain.terrainFile')}</label>
               <select
                 value={terrain}
                 onChange={(e) => setTerrain(e.target.value)}
@@ -86,7 +88,7 @@ export default function TerrainAnalysis() {
               </select>
             </div>
             <ParameterRow
-              label="Resolution"
+              label={t('terrain.resolution')}
               value={resolution}
               onChange={setResolution}
               type="number"
@@ -101,7 +103,7 @@ export default function TerrainAnalysis() {
         </GlassCard>
 
         <GlassCard>
-          <SectionTitle title="Derivatives" description="Select maps to generate" />
+          <SectionTitle title={t('terrain.derivatives')} description={t('terrain.selectMaps')} />
           <div className="space-y-1.5">
             {derivatives.map((d) => (
               <label
@@ -165,13 +167,13 @@ export default function TerrainAnalysis() {
       {/* RIGHT PANEL */}
       <div className="col-span-3 space-y-4 overflow-y-auto">
         <GlassCard>
-          <SectionTitle title="Statistics" description={activePreview} />
+          <SectionTitle title={t('terrain.statistics')} description={activePreview} />
           <div className="space-y-3">
             {[
-              { label: 'Min', value: '12.3', unit: 'm' },
-              { label: 'Max', value: '847.6', unit: 'm' },
-              { label: 'Mean', value: '324.1', unit: 'm' },
-              { label: 'Std Dev', value: '142.8', unit: 'm' },
+              { label: t('terrain.min'), value: '12.3', unit: 'm' },
+              { label: t('terrain.max'), value: '847.6', unit: 'm' },
+              { label: t('terrain.mean'), value: '324.1', unit: 'm' },
+              { label: t('terrain.stdDev'), value: '142.8', unit: 'm' },
             ].map((s) => (
               <div key={s.label} className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">{s.label}</span>
@@ -184,7 +186,7 @@ export default function TerrainAnalysis() {
         </GlassCard>
 
         <PlotCard
-          title="Distribution"
+          title={t('terrain.distribution')}
           data={[
             {
               x: histData,
@@ -197,7 +199,7 @@ export default function TerrainAnalysis() {
         />
 
         <GlassCard>
-          <SectionTitle title="Generated Files" />
+          <SectionTitle title={t('terrain.generatedFiles')} />
           <ArtifactList artifacts={demoArtifacts} />
         </GlassCard>
       </div>
