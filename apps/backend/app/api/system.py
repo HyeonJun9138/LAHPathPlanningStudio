@@ -56,7 +56,8 @@ async def cuda_info() -> CudaInfo:
     devices: list[CudaDevice] = []
     for i in range(torch.cuda.device_count()):
         props = torch.cuda.get_device_properties(i)
-        total_mb = props.total_mem / (1024 * 1024)
+        total_memory = getattr(props, "total_memory", getattr(props, "total_mem", 0))
+        total_mb = total_memory / (1024 * 1024)
         try:
             free_mb = torch.cuda.mem_get_info(i)[0] / (1024 * 1024)
         except Exception:

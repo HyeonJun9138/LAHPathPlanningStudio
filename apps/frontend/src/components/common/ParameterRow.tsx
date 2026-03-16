@@ -13,17 +13,19 @@ interface ParameterRowProps {
   max?: number;
   step?: number;
   className?: string;
+  layout?: 'inline' | 'stacked';
 }
 
 export default function ParameterRow({
   label, value, onChange, type = 'text', unit, tooltip,
-  defaultValue, min, max, step, className = '',
+  defaultValue, min, max, step, className = '', layout = 'inline',
 }: ParameterRowProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const isStacked = layout === 'stacked';
 
   return (
-    <div className={`flex items-center gap-3 py-2 ${className}`}>
-      <div className="flex items-center gap-1.5 min-w-[140px]">
+    <div className={`${isStacked ? 'space-y-2 py-1' : 'flex items-center gap-3 py-2'} min-w-0 ${className}`}>
+      <div className={`flex items-center gap-1.5 ${isStacked ? '' : 'min-w-[140px]'}`}>
         <label className="text-sm text-gray-700 font-medium">{label}</label>
         {tooltip && (
           <div className="relative">
@@ -42,7 +44,7 @@ export default function ParameterRow({
           </div>
         )}
       </div>
-      <div className="flex items-center gap-2 flex-1">
+      <div className={`flex items-center gap-2 min-w-0 ${isStacked ? 'w-full' : 'flex-1'}`}>
         <input
           type={type}
           value={value}
@@ -53,11 +55,11 @@ export default function ParameterRow({
           className="flex-1 px-3 py-1.5 text-sm bg-white/60 border border-gray-200/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
           title={tooltip}
         />
-        {unit && <span className="text-xs text-gray-400 min-w-[24px]">{unit}</span>}
+        {unit && <span className="text-xs text-gray-400 shrink-0 min-w-[24px]">{unit}</span>}
         {defaultValue !== undefined && (
           <button
             onClick={() => onChange(String(defaultValue))}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            className="shrink-0 p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
             title={`Reset to ${defaultValue}`}
           >
             <RotateCcw size={14} />

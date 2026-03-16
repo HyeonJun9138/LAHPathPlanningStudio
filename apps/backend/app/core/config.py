@@ -81,6 +81,14 @@ def load_config(config_path: str | Path | None = None) -> AppConfig:
     frontend_section = raw.get("frontend", {})
     paths_section = raw.get("paths", {})
 
+    # Allow launcher scripts to override host/port/origin without editing YAML.
+    if os.getenv("LAH_BACKEND_HOST"):
+        app_section["host"] = os.environ["LAH_BACKEND_HOST"]
+    if os.getenv("LAH_BACKEND_PORT"):
+        app_section["port"] = int(os.environ["LAH_BACKEND_PORT"])
+    if os.getenv("LAH_FRONTEND_ORIGIN"):
+        frontend_section["origin"] = os.environ["LAH_FRONTEND_ORIGIN"]
+
     return AppConfig(
         **app_section,
         frontend=FrontendConfig(**frontend_section),

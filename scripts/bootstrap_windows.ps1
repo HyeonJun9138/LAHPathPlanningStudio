@@ -10,7 +10,27 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+function Get-NpmExecutable {
+    foreach ($commandName in @("npm.cmd", "npm")) {
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue
+        if ($command -and $command.Source) {
+            return $command.Source
+        }
+    }
+
+    foreach ($candidate in @(
+        "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VisualStudio\NodeJs\npm.cmd",
+        "C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Microsoft\VisualStudio\NodeJs\npm.cmd"
+    )) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    return $null
+}
+
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 if (-not $ProjectRoot) {
     $ProjectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 }
@@ -68,7 +88,7 @@ if (Test-Path $VenvDir) {
 }
 
 # Activate
-$ActivateScript = Join-Path $VenvDir "Scripts" "Activate.ps1"
+$ActivateScript = Join-Path (Join-Path $VenvDir "Scripts") "Activate.ps1"
 if (-not (Test-Path $ActivateScript)) {
     Write-Host "  ERROR: Cannot find activation script at $ActivateScript" -ForegroundColor Red
     exit 1
@@ -85,15 +105,15 @@ Write-Host "[3/5] Installing dependencies..." -ForegroundColor Yellow
 Write-Host "  Upgrading pip..."
 & python -m pip install --upgrade pip --quiet
 
-Write-Host "  Installing project (editable + dev extras)..."
+    Write-Host "  Installing project (editable + dev extras)..."
 & pip install -e "$ProjectRoot[dev]" --quiet
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  WARNING: editable install failed, falling back to requirements.txt" -ForegroundColor DarkYellow
-    $ReqFile = Join-Path $ProjectRoot "apps" "backend" "requirements.txt"
+    $ReqFile = Join-Path (Join-Path (Join-Path $ProjectRoot "apps") "backend") "requirements.txt"
     & pip install -r $ReqFile --quiet
 }
 
-$ReqFile = Join-Path $ProjectRoot "apps" "backend" "requirements.txt"
+$ReqFile = Join-Path (Join-Path (Join-Path $ProjectRoot "apps") "backend") "requirements.txt"
 Write-Host "  Installing backend requirements..."
 & pip install -r $ReqFile --quiet
 
@@ -105,13 +125,14 @@ Write-Host "  Dependencies installed" -ForegroundColor Green
 Write-Host ""
 Write-Host "[4/5] Installing frontend dependencies..." -ForegroundColor Yellow
 
-$FrontendDir = Join-Path $ProjectRoot "apps" "frontend"
+$FrontendDir = Join-Path (Join-Path $ProjectRoot "apps") "frontend"
+$NpmExecutable = Get-NpmExecutable
 if (Test-Path (Join-Path $FrontendDir "package.json")) {
     Push-Location $FrontendDir
     try {
-        $npmCmd = Get-Command npm -ErrorAction SilentlyContinue
-        if ($npmCmd) {
-            & npm install --silent 2>&1 | Out-Null
+        if ($NpmExecutable) {
+            $env:PATH = "$(Split-Path -Parent $NpmExecutable);$env:PATH"
+            & $NpmExecutable install --silent 2>&1 | Out-Null
             Write-Host "  Frontend dependencies installed" -ForegroundColor Green
         } else {
             Write-Host "  WARNING: npm not found, skipping frontend install" -ForegroundColor DarkYellow
@@ -130,7 +151,7 @@ if (Test-Path (Join-Path $FrontendDir "package.json")) {
 Write-Host ""
 Write-Host "[5/5] Initializing workspace..." -ForegroundColor Yellow
 
-$InitScript = Join-Path $ProjectRoot "scripts" "init_workspace.py"
+$InitScript = Join-Path (Join-Path $ProjectRoot "scripts") "init_workspace.py"
 & python $InitScript
 
 # -----------------------------------------------------------------------

@@ -10,28 +10,32 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 if (-not $ProjectRoot) {
     $ProjectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 }
 
 $ScriptsDir = Join-Path $ProjectRoot "scripts"
+$BackendHost = "127.0.0.1"
+$BackendPort = 8000
+$FrontendPort = 5173
+$FrontendOrigin = "http://localhost:$FrontendPort"
 
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "  LAH Path Planning Studio - Starting All Services" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Backend  : http://127.0.0.1:8000  (API docs: /docs)" -ForegroundColor White
-Write-Host "  Frontend : http://localhost:5173" -ForegroundColor White
+Write-Host "  Backend  : http://${BackendHost}:$BackendPort  (API docs: /docs)" -ForegroundColor White
+Write-Host "  Frontend : http://localhost:$FrontendPort" -ForegroundColor White
 Write-Host ""
 Write-Host "  Press Ctrl+C to stop all services" -ForegroundColor Yellow
 Write-Host ""
 
 # Start backend as a job
 $BackendJob = Start-Job -Name "LAH-Backend" -ScriptBlock {
-    param($ScriptPath)
-    & pwsh -NoProfile -File $ScriptPath
-} -ArgumentList (Join-Path $ScriptsDir "run_backend.ps1")
+    param($ScriptPath, $HostName, $PortNumber, $Origin)
+    & pwsh -NoProfile -File $ScriptPath -ListenHost $HostName -Port $PortNumber -FrontendOrigin $Origin *>&1
+} -ArgumentList (Join-Path $ScriptsDir "run_backend.ps1"), $BackendHost, $BackendPort, $FrontendOrigin
 
 Write-Host "  [+] Backend started (Job ID: $($BackendJob.Id))" -ForegroundColor Green
 
@@ -40,9 +44,9 @@ Start-Sleep -Seconds 2
 
 # Start frontend as a job
 $FrontendJob = Start-Job -Name "LAH-Frontend" -ScriptBlock {
-    param($ScriptPath)
-    & pwsh -NoProfile -File $ScriptPath
-} -ArgumentList (Join-Path $ScriptsDir "run_frontend.ps1")
+    param($ScriptPath, $PortNumber, $BackendPortNumber, $HostName)
+    & pwsh -NoProfile -File $ScriptPath -Port $PortNumber -BackendPort $BackendPortNumber -BackendHost $HostName *>&1
+} -ArgumentList (Join-Path $ScriptsDir "run_frontend.ps1"), $FrontendPort, $BackendPort, $BackendHost
 
 Write-Host "  [+] Frontend started (Job ID: $($FrontendJob.Id))" -ForegroundColor Green
 Write-Host ""
@@ -62,13 +66,13 @@ try {
         }
 
         # Check if either job has stopped unexpectedly
-        if ($BackendJob.State -eq "Failed") {
-            Write-Host "  Backend job failed!" -ForegroundColor Red
+        if ($BackendJob.State -in @("Completed", "Failed", "Stopped")) {
+            Write-Host "  Backend job stopped unexpectedly! State: $($BackendJob.State)" -ForegroundColor Red
             Receive-Job -Job $BackendJob -ErrorAction SilentlyContinue
             break
         }
-        if ($FrontendJob.State -eq "Failed") {
-            Write-Host "  Frontend job failed!" -ForegroundColor Red
+        if ($FrontendJob.State -in @("Completed", "Failed", "Stopped")) {
+            Write-Host "  Frontend job stopped unexpectedly! State: $($FrontendJob.State)" -ForegroundColor Red
             Receive-Job -Job $FrontendJob -ErrorAction SilentlyContinue
             break
         }

@@ -10,18 +10,18 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 if (-not $ProjectRoot) {
     $ProjectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 }
 
 # Activate virtual environment if present
-$VenvActivate = Join-Path $ProjectRoot ".venv" "Scripts" "Activate.ps1"
+$VenvActivate = Join-Path (Join-Path (Join-Path $ProjectRoot ".venv") "Scripts") "Activate.ps1"
 if (Test-Path $VenvActivate) {
     . $VenvActivate
 }
 
-$CheckScript = Join-Path $ProjectRoot "scripts" "check_cuda.py"
+$CheckScript = Join-Path (Join-Path $ProjectRoot "scripts") "check_cuda.py"
 
 if (-not (Test-Path $CheckScript)) {
     Write-Host "ERROR: check_cuda.py not found at $CheckScript" -ForegroundColor Red

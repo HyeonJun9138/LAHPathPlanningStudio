@@ -29,11 +29,12 @@ def detect_cuda() -> dict:
     if available:
         for i in range(torch.cuda.device_count()):
             props = torch.cuda.get_device_properties(i)
+            total_memory = getattr(props, "total_memory", getattr(props, "total_mem", 0))
             devices.append(
                 {
                     "name": props.name,
                     "index": i,
-                    "total_memory_mb": props.total_mem // (1024 * 1024),
+                    "total_memory_mb": total_memory // (1024 * 1024),
                     "torch_name": f"cuda:{i}",
                 }
             )

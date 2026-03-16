@@ -53,39 +53,39 @@ export default function MissionDesigner() {
     setter(list.map((p, i) => (i === idx ? { ...p, [field]: val } : p)));
 
   return (
-    <div className="grid grid-cols-12 gap-6 h-full">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-full">
       {/* LEFT */}
-      <div className="col-span-4 space-y-4 overflow-y-auto">
+      <div className="xl:col-span-4 space-y-4 overflow-y-auto min-w-0">
         <GlassCard>
           <SectionTitle title="Start Point" />
-          <div className="grid grid-cols-3 gap-2">
-            <ParameterRow label="X" value={start.x} onChange={(v) => setStart({ ...start, x: v })} type="number" unit="m" />
-            <ParameterRow label="Y" value={start.y} onChange={(v) => setStart({ ...start, y: v })} type="number" unit="m" />
-            <ParameterRow label="AGL" value={start.agl} onChange={(v) => setStart({ ...start, agl: v })} type="number" unit="m" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <ParameterRow label="X" value={start.x} onChange={(v) => setStart({ ...start, x: v })} type="number" unit="m" layout="stacked" />
+            <ParameterRow label="Y" value={start.y} onChange={(v) => setStart({ ...start, y: v })} type="number" unit="m" layout="stacked" />
+            <ParameterRow label="AGL" value={start.agl} onChange={(v) => setStart({ ...start, agl: v })} type="number" unit="m" layout="stacked" />
           </div>
         </GlassCard>
 
         <GlassCard>
           <SectionTitle title="Goal Point" />
-          <div className="grid grid-cols-3 gap-2">
-            <ParameterRow label="X" value={goal.x} onChange={(v) => setGoal({ ...goal, x: v })} type="number" unit="m" />
-            <ParameterRow label="Y" value={goal.y} onChange={(v) => setGoal({ ...goal, y: v })} type="number" unit="m" />
-            <ParameterRow label="AGL" value={goal.agl} onChange={(v) => setGoal({ ...goal, agl: v })} type="number" unit="m" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <ParameterRow label="X" value={goal.x} onChange={(v) => setGoal({ ...goal, x: v })} type="number" unit="m" layout="stacked" />
+            <ParameterRow label="Y" value={goal.y} onChange={(v) => setGoal({ ...goal, y: v })} type="number" unit="m" layout="stacked" />
+            <ParameterRow label="AGL" value={goal.agl} onChange={(v) => setGoal({ ...goal, agl: v })} type="number" unit="m" layout="stacked" />
           </div>
         </GlassCard>
 
         <GlassCard>
           <SectionTitle title="Observe Box" />
-          <div className="space-y-1">
-            <div className="grid grid-cols-3 gap-2">
-              <ParameterRow label="CX" value={observe.cx} onChange={(v) => setObserve({ ...observe, cx: v })} type="number" unit="m" />
-              <ParameterRow label="CY" value={observe.cy} onChange={(v) => setObserve({ ...observe, cy: v })} type="number" unit="m" />
-              <ParameterRow label="CZ" value={observe.cz} onChange={(v) => setObserve({ ...observe, cz: v })} type="number" unit="m" />
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <ParameterRow label="CX" value={observe.cx} onChange={(v) => setObserve({ ...observe, cx: v })} type="number" unit="m" layout="stacked" />
+              <ParameterRow label="CY" value={observe.cy} onChange={(v) => setObserve({ ...observe, cy: v })} type="number" unit="m" layout="stacked" />
+              <ParameterRow label="CZ" value={observe.cz} onChange={(v) => setObserve({ ...observe, cz: v })} type="number" unit="m" layout="stacked" />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <ParameterRow label="SX" value={observe.sx} onChange={(v) => setObserve({ ...observe, sx: v })} type="number" unit="m" />
-              <ParameterRow label="SY" value={observe.sy} onChange={(v) => setObserve({ ...observe, sy: v })} type="number" unit="m" />
-              <ParameterRow label="SZ" value={observe.sz} onChange={(v) => setObserve({ ...observe, sz: v })} type="number" unit="m" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <ParameterRow label="SX" value={observe.sx} onChange={(v) => setObserve({ ...observe, sx: v })} type="number" unit="m" layout="stacked" />
+              <ParameterRow label="SY" value={observe.sy} onChange={(v) => setObserve({ ...observe, sy: v })} type="number" unit="m" layout="stacked" />
+              <ParameterRow label="SZ" value={observe.sz} onChange={(v) => setObserve({ ...observe, sz: v })} type="number" unit="m" layout="stacked" />
             </div>
             <ParameterRow label="Duration" value={observe.duration} onChange={(v) => setObserve({ ...observe, duration: v })} type="number" unit="sec" />
           </div>
@@ -101,11 +101,11 @@ export default function MissionDesigner() {
             }
           />
           {safeHolds.map((p, i) => (
-            <div key={i} className="flex items-center gap-2 mb-2">
-              <input type="number" value={p.x} onChange={(e) => updatePoint(safeHolds, setSafeHolds, i, 'x', e.target.value)} className="flex-1 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="X" />
-              <input type="number" value={p.y} onChange={(e) => updatePoint(safeHolds, setSafeHolds, i, 'y', e.target.value)} className="flex-1 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="Y" />
-              <input type="number" value={p.agl} onChange={(e) => updatePoint(safeHolds, setSafeHolds, i, 'agl', e.target.value)} className="flex-1 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="AGL" />
-              <button onClick={() => removePoint(safeHolds, setSafeHolds, i)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={13} /></button>
+            <div key={i} className="grid grid-cols-1 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-2 mb-2 items-center">
+              <input type="number" value={p.x} onChange={(e) => updatePoint(safeHolds, setSafeHolds, i, 'x', e.target.value)} className="w-full min-w-0 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="X" />
+              <input type="number" value={p.y} onChange={(e) => updatePoint(safeHolds, setSafeHolds, i, 'y', e.target.value)} className="w-full min-w-0 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="Y" />
+              <input type="number" value={p.agl} onChange={(e) => updatePoint(safeHolds, setSafeHolds, i, 'agl', e.target.value)} className="w-full min-w-0 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="AGL" />
+              <button onClick={() => removePoint(safeHolds, setSafeHolds, i)} className="justify-self-start sm:justify-self-center p-1 text-gray-400 hover:text-red-500"><Trash2 size={13} /></button>
             </div>
           ))}
         </GlassCard>
@@ -120,11 +120,11 @@ export default function MissionDesigner() {
             }
           />
           {altLZs.map((p, i) => (
-            <div key={i} className="flex items-center gap-2 mb-2">
-              <input type="number" value={p.x} onChange={(e) => updatePoint(altLZs, setAltLZs, i, 'x', e.target.value)} className="flex-1 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="X" />
-              <input type="number" value={p.y} onChange={(e) => updatePoint(altLZs, setAltLZs, i, 'y', e.target.value)} className="flex-1 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="Y" />
-              <input type="number" value={p.agl} onChange={(e) => updatePoint(altLZs, setAltLZs, i, 'agl', e.target.value)} className="flex-1 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="AGL" />
-              <button onClick={() => removePoint(altLZs, setAltLZs, i)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={13} /></button>
+            <div key={i} className="grid grid-cols-1 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-2 mb-2 items-center">
+              <input type="number" value={p.x} onChange={(e) => updatePoint(altLZs, setAltLZs, i, 'x', e.target.value)} className="w-full min-w-0 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="X" />
+              <input type="number" value={p.y} onChange={(e) => updatePoint(altLZs, setAltLZs, i, 'y', e.target.value)} className="w-full min-w-0 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="Y" />
+              <input type="number" value={p.agl} onChange={(e) => updatePoint(altLZs, setAltLZs, i, 'agl', e.target.value)} className="w-full min-w-0 px-2 py-1 text-sm bg-white/60 border border-gray-200/60 rounded-lg" placeholder="AGL" />
+              <button onClick={() => removePoint(altLZs, setAltLZs, i)} className="justify-self-start sm:justify-self-center p-1 text-gray-400 hover:text-red-500"><Trash2 size={13} /></button>
             </div>
           ))}
         </GlassCard>
@@ -141,7 +141,7 @@ export default function MissionDesigner() {
       </div>
 
       {/* CENTER - Map */}
-      <div className="col-span-5 overflow-y-auto">
+      <div className="xl:col-span-5 overflow-y-auto min-w-0">
         <GlassCard className="h-full">
           <SectionTitle title="Mission Map" description="Terrain outline with mission points" />
           <div className="relative w-full h-[500px] bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden">
@@ -195,7 +195,7 @@ export default function MissionDesigner() {
       </div>
 
       {/* RIGHT - JSON Preview */}
-      <div className="col-span-3 overflow-y-auto">
+      <div className="xl:col-span-3 overflow-y-auto min-w-0">
         <GlassCard className="h-full">
           <SectionTitle title="Mission JSON" />
           <pre className="text-xs text-gray-700 bg-gray-50/60 rounded-xl p-3 overflow-auto max-h-[600px] font-mono leading-5">
