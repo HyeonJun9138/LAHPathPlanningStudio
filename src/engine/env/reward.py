@@ -1,8 +1,15 @@
 """Reward calculation for the terrain path-planning environment.
 
-Implements a 14-component reward function with configurable weights,
+Implements a multi-component reward function with configurable weights,
 potential-based reward shaping, and reward clipping.  Each component
 is computed independently and the weighted sum is returned.
+
+Improvements over v1:
+- Added fuel_efficiency, threat_proximity, and smoothness components
+- Potential-based shaping uses a configurable weight
+- Wider clip range for terminal rewards so collision/fail signals
+  are not suppressed
+- Fuel-aware potential term encourages fuel conservation
 """
 
 from __future__ import annotations
@@ -20,16 +27,22 @@ from engine.mission.state_machine import MissionMode
 # ---------------------------------------------------------------------------
 
 def _potential(state: dict, mission_goal_dist: float) -> float:
-    """Distance-based potential for reward shaping (closer = higher).
+    """Composite potential for reward shaping.
 
-    Returns a value in [0, 1] that increases as the agent approaches
-    the goal.
+    Combines distance-to-goal progress (weight 0.7) with a fuel-conservation
+    term (weight 0.3).  Returns a value in [0, 1].
     """
     d = mission_goal_dist
     max_d = state.get("initial_goal_distance", d + 1.0)
     if max_d < 1.0:
-        return 1.0
-    return max(0.0, 1.0 - d / max_d)
+        dist_potential = 1.0
+    else:
+        dist_potential = max(0.0, 1.0 - d / max_d)
+
+    fuel = float(state.get("fuel", 1.0))
+    fuel_potential = max(0.0, min(1.0, fuel))
+
+    return 0.7 * dist_potential + 0.3 * fuel_potential
 
 
 # ---------------------------------------------------------------------------
@@ -127,11 +140,6 @@ def _reward_invalid_action(action_was_invalid: bool) -> float:
     return -1.0 if action_was_invalid else 0.0
 
 
-def _reward_mode_switch(prev_mode: MissionMode, curr_mode: MissionMode) -> float:
-    """Small penalty for every mode switch to discourage oscillation."""
-    return -1.0 if prev_mode != curr_mode else 0.0
-
-
 def _reward_collision(collision: bool) -> float:
     """Large penalty for terrain collision."""
     return -1.0 if collision else 0.0
@@ -140,6 +148,64 @@ def _reward_collision(collision: bool) -> float:
 def _reward_fail_terminal(done: bool, success: bool) -> float:
     """Large penalty for failing the mission."""
     return -1.0 if (done and not success) else 0.0
+
+
+def _reward_fuel_efficiency(prev_fuel: float, curr_fuel: float, dt: float) -> float:
+    """Penalty for excessive fuel burn relative to time elapsed.
+
+    Encourages the agent to find fuel-efficient trajectories.
+    Returns a value in [-1, 0].
+    """
+    fuel_burn = prev_fuel - curr_fuel
+    if dt < 0.01:
+        return 0.0
+    burn_rate = fuel_burn / dt
+    # Penalise burn rates above the nominal 0.0001/s baseline
+    excess = max(0.0, burn_rate - 0.0001)
+    return -min(excess * 5000.0, 1.0)
+
+
+def _reward_threat_proximity(min_clearance: float) -> float:
+    """Penalty for flying dangerously close to terrain/threats.
+
+    Encourages maintaining safe clearance. Smooth penalty that
+    increases as clearance drops below 30 m.
+    Returns a value in [-1, 0].
+    """
+    if min_clearance >= 30.0:
+        return 0.0
+    return -((30.0 - min_clearance) / 30.0)
+
+
+def _reward_mode_switch(prev_mode: MissionMode, curr_mode: MissionMode) -> float:
+    """Penalty for unnecessary mode switches.
+
+    Frequent mode switches indicate indecision and waste time.
+    Returns -1.0 if the mode changed, 0.0 otherwise.
+    """
+    return -1.0 if prev_mode != curr_mode else 0.0
+
+
+def _reward_smoothness(
+    prev_heading: float, curr_heading: float,
+    prev_alt_agl: float, curr_alt_agl: float,
+) -> float:
+    """Penalty for jerky manoeuvres (large heading or altitude changes).
+
+    Encourages smooth trajectories that are more realistic for
+    rotorcraft flight.  Returns a value in [-1, 0].
+    """
+    # Heading change penalty (normalised by pi)
+    dh = abs(curr_heading - prev_heading)
+    if dh > math.pi:
+        dh = 2.0 * math.pi - dh
+    heading_pen = (dh / math.pi) ** 2  # quadratic: small turns are cheap
+
+    # Altitude change penalty
+    da = abs(curr_alt_agl - prev_alt_agl)
+    alt_pen = min(da / 100.0, 1.0)
+
+    return -0.5 * (heading_pen + alt_pen)
 
 
 # ---------------------------------------------------------------------------
@@ -157,8 +223,15 @@ class RewardCalculator:
         :attr:`TrainingConfig.reward_weights`.
     clip_range : tuple[float, float]
         ``(min_reward, max_reward)`` applied after weighting.
+        Default widened to (-50, 50) so terminal signals for
+        collision (weight 200) and fail (weight 150) are not
+        excessively suppressed.
     gamma : float
         Discount factor used for potential-based shaping.
+    shaping_weight : float
+        Multiplier applied to the potential-based shaping term.
+        Allows tuning the strength of the shaping signal independently
+        of reward component weights.
     """
 
     COMPONENT_NAMES = [
@@ -176,17 +249,22 @@ class RewardCalculator:
         "mode_switch",
         "collision",
         "fail_terminal",
+        "fuel_efficiency",
+        "threat_proximity",
+        "smoothness",
     ]
 
     def __init__(
         self,
         weights: dict[str, float],
-        clip_range: tuple[float, float] = (-10.0, 10.0),
+        clip_range: tuple[float, float] = (-50.0, 50.0),
         gamma: float = 0.99,
+        shaping_weight: float = 1.0,
     ) -> None:
         self.weights = {k: weights.get(k, 0.0) for k in self.COMPONENT_NAMES}
         self.clip_min, self.clip_max = clip_range
         self.gamma = gamma
+        self.shaping_weight = shaping_weight
 
     def compute(
         self,
@@ -205,7 +283,7 @@ class RewardCalculator:
         prev_state : dict
             Agent state *before* the step.  Keys: ``goal_distance``,
             ``mode``, ``observe_done``, ``initial_goal_distance``,
-            ``altitude_agl``.
+            ``altitude_agl``, ``fuel``, ``heading``.
         curr_state : dict
             Agent state *after* the step.  Same keys as above plus
             ``zone_penalty``.
@@ -235,15 +313,21 @@ class RewardCalculator:
         observe_done = bool(curr_state.get("observe_done", False))
         prev_observe_done = bool(prev_state.get("observe_done", False))
         altitude_agl = float(curr_state.get("altitude_agl", 30.0))
+        prev_alt_agl = float(prev_state.get("altitude_agl", 30.0))
         target_agl = float(curr_state.get("target_agl", 20.0))
         zone_pen = float(curr_state.get("zone_penalty", 0.0))
+        prev_fuel = float(prev_state.get("fuel", 1.0))
+        curr_fuel = float(curr_state.get("fuel", 1.0))
+        prev_heading = float(prev_state.get("heading", 0.0))
+        curr_heading = float(curr_state.get("heading", 0.0))
 
         step_dist = float(action_result.get("distance", 0.0))
         dt = float(action_result.get("time_estimate", 0.0))
         alt_change = float(action_result.get("altitude_change", 0.0))
         int_risk = float(action_result.get("integrated_risk", 0.0))
         vis_ratio = float(action_result.get("visible_ratio", 0.0))
-        collision = float(action_result.get("min_clearance", 999.0)) < 0.5
+        min_clearance = float(action_result.get("min_clearance", 999.0))
+        collision = min_clearance < 0.5
 
         components: dict[str, float] = {
             "progress": _reward_progress(prev_gd, curr_gd, init_gd),
@@ -264,6 +348,11 @@ class RewardCalculator:
             "mode_switch": _reward_mode_switch(prev_mode, curr_mode),
             "collision": _reward_collision(collision),
             "fail_terminal": _reward_fail_terminal(done, success),
+            "fuel_efficiency": _reward_fuel_efficiency(prev_fuel, curr_fuel, dt),
+            "threat_proximity": _reward_threat_proximity(min_clearance),
+            "smoothness": _reward_smoothness(
+                prev_heading, curr_heading, prev_alt_agl, altitude_agl
+            ),
         }
 
         # Weighted sum
@@ -271,13 +360,13 @@ class RewardCalculator:
             self.weights[name] * value for name, value in components.items()
         )
 
-        # Potential-based shaping: gamma * phi(s') - phi(s)
+        # Potential-based shaping: shaping_weight * (gamma * phi(s') - phi(s))
         phi_prev = _potential(prev_state, prev_gd)
         phi_curr = _potential(curr_state, curr_gd)
         shaping = self.gamma * phi_curr - phi_prev
-        total += shaping
+        total += self.shaping_weight * shaping
 
-        # Clip
+        # Clip — wider range than v1 so terminal signals are preserved
         total = max(self.clip_min, min(self.clip_max, total))
 
         return total, components

@@ -22,6 +22,18 @@ import torch.nn as nn
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 
+def _init_weights(module: nn.Module) -> None:
+    """Apply proper weight initialisation to Conv2d and Linear layers.
+
+    Uses Kaiming (He) init for layers followed by ReLU, which is the
+    standard choice for networks with ReLU activations.
+    """
+    if isinstance(module, (nn.Conv2d, nn.Linear)):
+        nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
+        if module.bias is not None:
+            nn.init.zeros_(module.bias)
+
+
 class TerrainFeatureExtractor(BaseFeaturesExtractor):
     """Multi-modal feature extractor for :class:`TerrainPathEnv`.
 
@@ -31,12 +43,16 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         A :class:`gym.spaces.Dict` with the five keys listed above.
     features_dim:
         Width of the output feature vector (default 256).
+    dropout:
+        Dropout probability applied after fusion and within MLP branches
+        for regularisation.  Default 0.1.
     """
 
     def __init__(
         self,
         observation_space: gym.spaces.Dict,
         features_dim: int = 256,
+        dropout: float = 0.1,
     ) -> None:
         # Call super with the *final* features_dim; we will recompute
         # _features_dim after building the sub-networks.
@@ -85,6 +101,7 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
             nn.Linear(self_state_dim, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
+            nn.Dropout(dropout),
             nn.Linear(64, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
@@ -110,6 +127,7 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
             nn.Linear(cand_feat_dim, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
+            nn.Dropout(dropout),
             nn.Linear(64, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(),
@@ -120,6 +138,7 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         # 6. Final fusion MLP
         # ------------------------------------------------------------------
         total_dim = hi_out_dim + mid_out_dim + state_out_dim + global_out_dim + cand_out_dim
+        self.fusion_dropout = nn.Dropout(dropout)
         self.final_mlp = nn.Sequential(
             nn.Linear(total_dim, features_dim),
             nn.BatchNorm1d(features_dim),
@@ -128,6 +147,9 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
 
         # Store the authoritative features_dim
         self._features_dim = features_dim
+
+        # Apply Kaiming (He) weight initialisation to all conv/linear layers
+        self.apply(_init_weights)
 
     # ------------------------------------------------------------------
     # Forward
@@ -163,4 +185,5 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
             [hi_features, mid_features, state_features, global_features, cand_pooled],
             dim=-1,
         )
+        combined = self.fusion_dropout(combined)
         return self.final_mlp(combined)

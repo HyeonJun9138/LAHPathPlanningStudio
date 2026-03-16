@@ -104,6 +104,9 @@ class TerrainPathEnv(gym.Env):
             "mode_switch": 0.2,
             "collision": 200.0,
             "fail_terminal": 150.0,
+            "fuel_efficiency": 0.5,
+            "threat_proximity": 1.5,
+            "smoothness": 0.3,
         }
         if reward_weights:
             default_weights.update(reward_weights)
@@ -205,7 +208,10 @@ class TerrainPathEnv(gym.Env):
         self, action: int
     ) -> tuple[dict[str, np.ndarray], float, bool, bool, dict[str, Any]]:
         """Execute one step: select candidate, execute primitive, update state."""
-        assert not self._done, "Environment is done; call reset()."
+        if self._done:
+            raise RuntimeError(
+                "Environment episode has ended. Call reset() before step()."
+            )
         self._step_count += 1
 
         prev_state = dict(self._state)
@@ -467,6 +473,10 @@ class TerrainPathEnv(gym.Env):
         if self._state["altitude_agl"] < 0.5:
             return True, False, False
 
+        # Fuel exhaustion (terminal failure, not truncation)
+        if self._state["fuel"] <= 0.0:
+            return True, False, False
+
         # Time limit
         if self._state["time_elapsed"] >= self.mission.max_episode_time_sec:
             return True, False, True
@@ -474,10 +484,6 @@ class TerrainPathEnv(gym.Env):
         # Step limit
         if self._step_count >= self.max_steps:
             return False, False, True
-
-        # Fuel exhaustion
-        if self._state["fuel"] <= 0.0:
-            return True, False, False
 
         return False, False, False
 
@@ -503,7 +509,7 @@ class TerrainPathEnv(gym.Env):
     def _dist_to_nearest(x: float, y: float, points: list) -> float:
         """Distance to the nearest point in a list of WaypointXYZ."""
         if not points:
-            return 0.0
+            return 99999.0
         return min(
             math.sqrt((x - p.x) ** 2 + (y - p.y) ** 2) for p in points
         )

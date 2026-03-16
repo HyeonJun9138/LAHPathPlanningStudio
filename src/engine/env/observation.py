@@ -216,7 +216,17 @@ class ObservationBuilder:
             [31]  num_mode_switches / 20
             [32]  is_in_observe_box (0 or 1)
             [33]  altitude_band (0=low, 0.5=mid, 1=high)
-            [34..47]  padding / reserved (zeros)
+            [34]  velocity_magnitude / 100
+            [35]  sin(velocity_direction)
+            [36]  cos(velocity_direction)
+            [37]  fuel_burn_rate * 1000
+            [38]  time_pressure (elapsed / max_time)
+            [39]  goal_progress_rate
+            [40]  vertical_speed / 50
+            [41]  zone_penalty
+            [42]  target_agl / 200
+            [43]  fuel_efficiency_estimate (fuel_remaining * 10000 / goal_dist)
+            [44..47]  reserved (zeros)
         """
         s = np.zeros(_SELF_STATE_DIM, dtype=np.float32)
 
@@ -270,7 +280,55 @@ class ObservationBuilder:
         else:
             s[33] = 1.0
 
-        # [34..47] reserved — already zero
+        # [34..43] additional features
+        # Velocity magnitude and direction
+        vx = float(state.get("vx", 0.0))
+        vy = float(state.get("vy", 0.0))
+        vz = float(state.get("vz", 0.0))
+        speed = math.sqrt(vx * vx + vy * vy + vz * vz)
+        s[34] = speed / 100.0  # velocity magnitude normalised
+
+        vel_heading = math.atan2(vy, vx) if speed > 0.1 else heading
+        s[35] = math.sin(vel_heading)  # velocity direction sin
+        s[36] = math.cos(vel_heading)  # velocity direction cos
+
+        # Fuel burn rate estimate (fuel consumed per time)
+        fuel = float(state.get("fuel", 1.0))
+        elapsed = float(state.get("time_elapsed", 0.0))
+        if elapsed > 1.0:
+            s[37] = (1.0 - fuel) / elapsed * 1000.0  # burn rate * 1000
+        else:
+            s[37] = 0.0
+
+        # Time pressure: ratio of elapsed to max time
+        if max_time > 1.0:
+            s[38] = elapsed / max_time
+        else:
+            s[38] = 0.0
+
+        # Goal distance change rate (progress velocity)
+        prev_gd = float(state.get("prev_goal_distance", goal_dist))
+        if elapsed > 1.0:
+            s[39] = (prev_gd - goal_dist) / max(init_gd, 1.0)
+        else:
+            s[39] = 0.0
+
+        # Vertical speed normalised
+        s[40] = vz / 50.0
+
+        # Zone penalty (proximity to boundary)
+        s[41] = float(state.get("zone_penalty", 0.0))
+
+        # Target AGL normalised
+        s[42] = float(state.get("target_agl", 20.0)) / 200.0
+
+        # Remaining fuel efficiency estimate
+        if goal_dist > 1.0 and fuel > 0.01:
+            s[43] = min(1.0, (fuel * 10000.0) / goal_dist)
+        else:
+            s[43] = 1.0
+
+        # [44..47] reserved — already zero
         return s
 
     # ------------------------------------------------------------------
@@ -299,7 +357,8 @@ class ObservationBuilder:
             [11]  goal_distance / 10000
             [12]  time_remaining_fraction
             [13]  fuel_remaining
-            [14..15] reserved
+            [14]  terrain_roughness (terrain_std_elev / 1000)
+            [15]  mission_phase_progress (0..1)
         """
         g = np.zeros(_GLOBAL_DIM, dtype=np.float32)
 
@@ -320,7 +379,19 @@ class ObservationBuilder:
         elapsed = float(state.get("time_elapsed", 0.0))
         g[12] = max(0.0, (max_time - elapsed) / max(max_time, 1.0))
         g[13] = float(state.get("fuel", 1.0))
-        # [14..15] reserved
+
+        # Terrain roughness (std of elevation normalised)
+        g[14] = float(mission_info.get("terrain_std_elev", 0.0)) / 1000.0
+
+        # Mission phase progress: fraction of waypoints/objectives completed
+        observe_done = 1.0 if state.get("observe_done", False) else 0.0
+        goal_progress = 1.0 - min(
+            float(state.get("goal_distance", 0.0))
+            / max(float(state.get("initial_goal_distance", 1.0)), 1.0),
+            1.0,
+        )
+        g[15] = 0.5 * observe_done + 0.5 * goal_progress
+
         return g
 
     # ------------------------------------------------------------------

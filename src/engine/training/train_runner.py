@@ -14,12 +14,16 @@ Typical usage::
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
+import traceback
 from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class TrainRunner:
@@ -94,11 +98,22 @@ class TrainRunner:
 
         self._start_time = time.time()
 
-        self.model.learn(
-            total_timesteps=self.total_timesteps,
-            callback=self.callback_list,
-            progress_bar=False,
-        )
+        try:
+            self.model.learn(
+                total_timesteps=self.total_timesteps,
+                callback=self.callback_list,
+                progress_bar=False,
+            )
+        except Exception:
+            logger.error("Training failed:\n%s", traceback.format_exc())
+            # Save an emergency checkpoint so progress is not lost
+            emergency_path = self.output_dir / "emergency_model.zip"
+            try:
+                self.model.save(str(emergency_path))
+                logger.info("Emergency checkpoint saved to %s", emergency_path)
+            except Exception:
+                logger.error("Could not save emergency checkpoint")
+            raise
 
         elapsed = time.time() - self._start_time
 
@@ -292,12 +307,24 @@ class TrainRunner:
             "net_arch": model_cfg.get("net_arch", dict(pi=[256, 128], vf=[256, 128])),
         }
 
+        # Learning rate schedule: linear decay from initial LR to 0
+        initial_lr = model_cfg.get("learning_rate", 3e-4)
+        use_lr_schedule = model_cfg.get("lr_schedule", "linear")
+
+        if use_lr_schedule == "linear":
+            def lr_schedule(progress_remaining: float) -> float:
+                """Linear decay: LR goes from initial_lr to 0."""
+                return progress_remaining * initial_lr
+            learning_rate = lr_schedule
+        else:
+            learning_rate = initial_lr
+
         model = MaskablePPO(
             policy="MultiInputPolicy",
             env=self.env,
-            learning_rate=model_cfg.get("learning_rate", 3e-4),
+            learning_rate=learning_rate,
             n_steps=model_cfg.get("n_steps", 2048),
-            batch_size=model_cfg.get("batch_size", 64),
+            batch_size=model_cfg.get("batch_size", 256),
             n_epochs=model_cfg.get("n_epochs", 10),
             gamma=model_cfg.get("gamma", 0.99),
             gae_lambda=model_cfg.get("gae_lambda", 0.95),

@@ -23,7 +23,7 @@ class RandomMaskedPolicy:
     """
 
     def __init__(self, seed: int | None = None) -> None:
-        self._rng = np.random.RandomState(seed)
+        self._rng = np.random.default_rng(seed)
 
     def predict(
         self,
@@ -58,7 +58,7 @@ class RandomMaskedPolicy:
 
         # Fallback: no mask found -- sample from [0, n_candidates)
         n_actions = self._infer_action_count(obs)
-        action = int(self._rng.randint(0, n_actions))
+        action = int(self._rng.integers(0, n_actions))
         return action, None
 
     # ------------------------------------------------------------------
@@ -85,10 +85,10 @@ class RandomMaskedPolicy:
         no mask is available.
         """
         if isinstance(obs, dict):
-            mask = obs.get("action_mask")
-            if mask is not None:
-                return len(mask)
-            candidates = obs.get("candidates")
+            # Try candidate_table first (standard key), then legacy fallback
+            candidates = obs.get("candidate_table")
+            if candidates is None:
+                candidates = obs.get("candidates")
             if candidates is not None:
                 arr = np.asarray(candidates)
                 if arr.ndim >= 1:

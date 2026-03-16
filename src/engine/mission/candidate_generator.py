@@ -668,8 +668,4 @@ class CandidateGenerator:
     @staticmethod
     def _wrap_angle(angle: float) -> float:
         """Wrap an angle to the range ``[-pi, pi]``."""
-        while angle > math.pi:
-            angle -= 2.0 * math.pi
-        while angle < -math.pi:
-            angle += 2.0 * math.pi
-        return angle
+        return ((angle + math.pi) % (2.0 * math.pi)) - math.pi

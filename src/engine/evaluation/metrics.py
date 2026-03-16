@@ -214,6 +214,91 @@ def compute_zone_violation_count(episodes: list[dict]) -> float:
     return float(total)
 
 
+def compute_path_efficiency(episodes: list[dict]) -> float:
+    """Ratio of straight-line goal distance to actual path length.
+
+    A value of 1.0 means the agent flew in a straight line; lower values
+    indicate more deviation.  Returns 0.0 when data is unavailable.
+    """
+    if not episodes:
+        return 0.0
+    ratios: list[float] = []
+    for ep in episodes:
+        straight = float(ep.get("initial_goal_distance", 0.0))
+        actual = float(ep.get("path_length", 0.0))
+        if actual < 1.0:
+            actual = _path_length_from_steps(ep.get("steps", []))
+        if actual > 1.0 and straight > 1.0:
+            ratios.append(min(straight / actual, 1.0))
+    return float(np.mean(ratios)) if ratios else 0.0
+
+
+def compute_mean_clearance(episodes: list[dict]) -> float:
+    """Average terrain clearance (metres AGL) across all steps.
+
+    Collects ``altitude_agl`` or ``clearance`` from step data.
+    """
+    if not episodes:
+        return 0.0
+    vals: list[float] = []
+    for ep in episodes:
+        if "mean_clearance" in ep:
+            vals.append(float(ep["mean_clearance"]))
+        else:
+            for s in ep.get("steps", []):
+                c = s.get("altitude_agl", s.get("clearance"))
+                if c is not None:
+                    vals.append(float(c))
+    return float(np.mean(vals)) if vals else 0.0
+
+
+def compute_mean_fuel_usage(episodes: list[dict]) -> float:
+    """Average fuel consumed per episode (1.0 = full tank)."""
+    if not episodes:
+        return 0.0
+    usages: list[float] = []
+    for ep in episodes:
+        if "fuel_used" in ep:
+            usages.append(float(ep["fuel_used"]))
+        else:
+            initial = float(ep.get("initial_fuel", 1.0))
+            final = float(ep.get("final_fuel", ep.get("fuel", initial)))
+            usages.append(max(0.0, initial - final))
+    return float(np.mean(usages)) if usages else 0.0
+
+
+def compute_mean_mode_switches(episodes: list[dict]) -> float:
+    """Average number of mission-mode switches per episode."""
+    if not episodes:
+        return 0.0
+    counts: list[float] = []
+    for ep in episodes:
+        if "num_mode_switches" in ep:
+            counts.append(float(ep["num_mode_switches"]))
+        else:
+            steps = ep.get("steps", [])
+            switches = 0
+            prev_mode = None
+            for s in steps:
+                m = s.get("mode")
+                if m is not None and m != prev_mode and prev_mode is not None:
+                    switches += 1
+                prev_mode = m
+            counts.append(float(switches))
+    return float(np.mean(counts)) if counts else 0.0
+
+
+def compute_timeout_rate(episodes: list[dict]) -> float:
+    """Fraction of episodes that ended by exceeding the time limit."""
+    if not episodes:
+        return 0.0
+    timeouts = [
+        bool(ep.get("timeout", False) or ep.get("truncated", False))
+        for ep in episodes
+    ]
+    return float(np.mean(timeouts))
+
+
 def aggregate_metrics(episodes: list[dict]) -> dict[str, float]:
     """Compute all standard metrics and return them as a flat dict.
 
@@ -224,7 +309,9 @@ def aggregate_metrics(episodes: list[dict]) -> dict[str, float]:
         ``mean_episode_time``, ``mean_risk``, ``mean_integrated_risk``,
         ``mean_visible_time``, ``altitude_violation_count``,
         ``zone_violation_count``, ``divert_rate``, ``collision_rate``,
-        ``observation_completion_rate``, ``num_episodes``.
+        ``observation_completion_rate``, ``path_efficiency``,
+        ``mean_clearance``, ``mean_fuel_usage``, ``mean_mode_switches``,
+        ``timeout_rate``, ``num_episodes``.
     """
     return {
         "success_rate": compute_success_rate(episodes),
@@ -239,6 +326,11 @@ def aggregate_metrics(episodes: list[dict]) -> dict[str, float]:
         "divert_rate": compute_divert_rate(episodes),
         "collision_rate": compute_collision_rate(episodes),
         "observation_completion_rate": compute_observation_rate(episodes),
+        "path_efficiency": compute_path_efficiency(episodes),
+        "mean_clearance": compute_mean_clearance(episodes),
+        "mean_fuel_usage": compute_mean_fuel_usage(episodes),
+        "mean_mode_switches": compute_mean_mode_switches(episodes),
+        "timeout_rate": compute_timeout_rate(episodes),
         "num_episodes": float(len(episodes)),
     }
 

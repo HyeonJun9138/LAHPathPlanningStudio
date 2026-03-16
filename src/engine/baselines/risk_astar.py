@@ -365,8 +365,8 @@ class RiskAStarPlanner:
             cur_wp = self._waypoints[max(0, self._current_wp_index - 1)]
             agent_x, agent_y = cur_wp
         else:
-            # Fall back: use the goal approach vector
-            agent_x, agent_y = 0.0, 0.0
+            # Fall back: use current position from self_state
+            agent_x, agent_y = cur_x, cur_y
 
         # Candidate absolute target positions
         rel_dx = candidates[:, 10].astype(np.float64) * 5000.0
