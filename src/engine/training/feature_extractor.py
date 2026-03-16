@@ -48,10 +48,13 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         hi_shape = observation_space["local_hi_patch"].shape
         self.hi_cnn = nn.Sequential(
             nn.Conv2d(hi_shape[0], 32, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Flatten(),
         )
@@ -64,8 +67,10 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         mid_shape = observation_space["local_mid_patch"].shape
         self.mid_cnn = nn.Sequential(
             nn.Conv2d(mid_shape[0], 32, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Flatten(),
         )
@@ -78,8 +83,10 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         self_state_dim = observation_space["self_state"].shape[0]
         self.state_mlp = nn.Sequential(
             nn.Linear(self_state_dim, 64),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.Linear(64, 64),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
         )
         state_out_dim = 64
@@ -90,6 +97,7 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         global_dim = observation_space["global_context"].shape[0]
         self.global_mlp = nn.Sequential(
             nn.Linear(global_dim, 32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
         )
         global_out_dim = 32
@@ -100,8 +108,10 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         cand_feat_dim = observation_space["candidate_table"].shape[1]
         self.candidate_mlp = nn.Sequential(
             nn.Linear(cand_feat_dim, 64),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.Linear(64, 32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
         )
         cand_out_dim = 32  # after max-pool over K candidates
@@ -112,6 +122,7 @@ class TerrainFeatureExtractor(BaseFeaturesExtractor):
         total_dim = hi_out_dim + mid_out_dim + state_out_dim + global_out_dim + cand_out_dim
         self.final_mlp = nn.Sequential(
             nn.Linear(total_dim, features_dim),
+            nn.BatchNorm1d(features_dim),
             nn.ReLU(),
         )
 

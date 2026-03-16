@@ -64,14 +64,16 @@ _DEFAULT_CONFIG: dict = {
     "heading_samples": 8,
     "agl_bands": [20.0, 80.0, 180.0],
     "counts": {
-        "transit": 12,
-        "hold": 3,
+        "transit": 10,
+        "hold": 2,
         "observe": 4,
         "popup": 3,
         "egress": 3,
         "return": 3,
         "divert": 2,
         "safe_mid": 2,
+        "descend": 2,
+        "dropdown": 1,
     },
 }
 
@@ -186,6 +188,16 @@ class CandidateGenerator:
 
         # ---- Return-home candidates ------------------------------------ #
         raw.extend(self._return_candidates(sx, sy, mission, mode))
+
+        # ---- Descend-and-hold candidates --------------------------------- #
+        raw.extend(
+            self._descend_candidates(sx, sy, sz, mission, mode)
+        )
+
+        # ---- Drop-down-safe candidates ----------------------------------- #
+        raw.extend(
+            self._dropdown_candidates(sx, sy, mission, mode)
+        )
 
         # ---- Divert candidates ----------------------------------------- #
         raw.extend(self._divert_candidates(sx, sy, mission))
@@ -419,6 +431,64 @@ class CandidateGenerator:
             ty = sy + d * math.sin(h)
             results.append(
                 (PrimitiveType.RETURN_HOME, tx, ty, _AGL[PrimitiveType.RETURN_HOME])
+            )
+        return results[:n]
+
+    def _descend_candidates(
+        self,
+        sx: float, sy: float, sz: float,
+        mission: "Mission",
+        mode: MissionMode,
+    ) -> list[tuple[PrimitiveType, float, float, float]]:
+        """Descend-and-hold candidates — descend to low altitude and loiter."""
+        results: list[tuple[PrimitiveType, float, float, float]] = []
+        n = self.counts.get("descend", 2)
+        # Only useful when at mid/high altitude or approaching safe holds
+        if mode not in (
+            MissionMode.TRANSIT,
+            MissionMode.OBSERVE_SETUP,
+            MissionMode.SAFE_HOLD,
+        ):
+            return results
+        # Near safe-hold points or current position with low AGL
+        targets: list[tuple[float, float]] = [(sx, sy)]
+        for sp in mission.safe_hold_points[:n - 1]:
+            targets.append((sp.x, sp.y))
+        for tx, ty in targets[:n]:
+            results.append(
+                (PrimitiveType.DESCEND_AND_HOLD, tx, ty,
+                 _AGL[PrimitiveType.DESCEND_AND_HOLD])
+            )
+        return results[:n]
+
+    def _dropdown_candidates(
+        self,
+        sx: float, sy: float,
+        mission: "Mission",
+        mode: MissionMode,
+    ) -> list[tuple[PrimitiveType, float, float, float]]:
+        """Drop-down-safe candidates — rapid descent after observation."""
+        results: list[tuple[PrimitiveType, float, float, float]] = []
+        n = self.counts.get("dropdown", 1)
+        if mode not in (
+            MissionMode.POPUP_OBSERVE,
+            MissionMode.DROP_DOWN,
+            MissionMode.OBSERVE_SETUP,
+        ):
+            return results
+        # Drop down towards goal direction at low altitude
+        goal_heading = math.atan2(
+            mission.goal.y - sy, mission.goal.x - sx
+        )
+        for i in range(n):
+            dist = self.distance_bands[0] * 0.5  # short distance
+            offset = (i - n / 2.0) * 0.3
+            h = goal_heading + offset
+            tx = sx + dist * math.cos(h)
+            ty = sy + dist * math.sin(h)
+            results.append(
+                (PrimitiveType.DROP_DOWN_SAFE, tx, ty,
+                 _AGL[PrimitiveType.DROP_DOWN_SAFE])
             )
         return results[:n]
 

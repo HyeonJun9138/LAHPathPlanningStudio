@@ -128,10 +128,17 @@ class RiskAStarPlanner:
         -------
         (action, None)
         """
-        # Extract current position
+        # Extract current position from self_state vector or direct keys
         if isinstance(obs, dict):
-            cur_x = float(obs.get("x", 0.0))
-            cur_y = float(obs.get("y", 0.0))
+            self_state = obs.get("self_state")
+            if self_state is not None:
+                ss = np.asarray(self_state, dtype=np.float64)
+                # self_state[0] = x / 10000, self_state[1] = y / 10000
+                cur_x = float(ss[0]) * 10000.0
+                cur_y = float(ss[1]) * 10000.0
+            else:
+                cur_x = float(obs.get("x", 0.0))
+                cur_y = float(obs.get("y", 0.0))
         else:
             cur_x, cur_y = 0.0, 0.0
 
@@ -149,7 +156,9 @@ class RiskAStarPlanner:
             return 0, None
 
         # Find candidate closest to the target waypoint
-        best_action = self._closest_candidate(candidates, mask, target)
+        best_action = self._closest_candidate(
+            candidates, mask, target, cur_x, cur_y
+        )
         return best_action, None
 
     # ------------------------------------------------------------------
@@ -309,7 +318,10 @@ class RiskAStarPlanner:
         mask = None
 
         if isinstance(obs, dict):
-            raw_cands = obs.get("candidates")
+            # The environment uses "candidate_table" as the obs key
+            raw_cands = obs.get("candidate_table")
+            if raw_cands is None:
+                raw_cands = obs.get("candidates")
             if raw_cands is not None:
                 candidates = np.asarray(raw_cands, dtype=np.float64)
             raw_mask = obs.get("action_mask")
@@ -318,32 +330,84 @@ class RiskAStarPlanner:
 
         return candidates, mask
 
-    @staticmethod
     def _closest_candidate(
+        self,
         candidates: np.ndarray,
         mask: Optional[np.ndarray],
         target: tuple[float, float],
+        cur_x: float = 0.0,
+        cur_y: float = 0.0,
     ) -> int:
-        """Return the index of the valid candidate nearest to *target*."""
+        """Return the index of the valid candidate nearest to *target*.
+
+        Candidate feature layout: columns 10,11 contain normalised
+        relative displacement (dx/5000, dy/5000).  We reconstruct
+        absolute positions by denormalising and adding the current
+        agent position (stored in the last-known waypoint context).
+        """
         tx, ty = target
 
-        # Candidate xy -- assume first two columns are (x, y)
         if candidates.ndim == 1:
-            # Single candidate or flat vector -- return 0
             return 0
 
-        cand_x = candidates[:, 0].astype(np.float64)
-        cand_y = candidates[:, 1].astype(np.float64)
+        # Columns 10,11 are rel_dx / 5000 and rel_dy / 5000
+        # Column 13 is distance / 5000, column 15 is goal_progress
+        # We use rel_dx/dy to compute the target position of each candidate
+        # relative to the agent's current position.
+        #
+        # The agent's current position is implicitly the "from" of each
+        # candidate.  We compare candidate target positions to the A*
+        # waypoint target.
 
-        dist = np.sqrt((cand_x - tx) ** 2 + (cand_y - ty) ** 2)
+        # Get current agent position from the waypoint tracker
+        if self._waypoints and self._current_wp_index > 0:
+            # We know where we roughly are from the last waypoint we passed
+            cur_wp = self._waypoints[max(0, self._current_wp_index - 1)]
+            agent_x, agent_y = cur_wp
+        else:
+            # Fall back: use the goal approach vector
+            agent_x, agent_y = 0.0, 0.0
+
+        # Candidate absolute target positions
+        rel_dx = candidates[:, 10].astype(np.float64) * 5000.0
+        rel_dy = candidates[:, 11].astype(np.float64) * 5000.0
+
+        # The target heading that would get us to the A* waypoint
+        # Use goal_progress (col 15) as a tiebreaker: higher is better
+        goal_progress = candidates[:, 15].astype(np.float64)
+
+        # Compare the direction each candidate moves vs direction to target
+        # This is more robust than absolute position comparison since we
+        # may not know the exact agent position
+        dir_to_target_x = tx - agent_x
+        dir_to_target_y = ty - agent_y
+        target_dist = math.sqrt(dir_to_target_x ** 2 + dir_to_target_y ** 2)
+
+        if target_dist > 1.0:
+            # Use directional similarity (dot product) + distance matching
+            # Normalise direction to target
+            dir_nx = dir_to_target_x / target_dist
+            dir_ny = dir_to_target_y / target_dist
+
+            cand_dist = np.sqrt(rel_dx ** 2 + rel_dy ** 2)
+            cand_nx = np.where(cand_dist > 1.0, rel_dx / cand_dist, 0.0)
+            cand_ny = np.where(cand_dist > 1.0, rel_dy / cand_dist, 0.0)
+
+            # Cosine similarity: 1 = same direction, -1 = opposite
+            cos_sim = cand_nx * dir_nx + cand_ny * dir_ny
+
+            # Combined score: high cos_sim and high goal_progress are good
+            # Negate so argmin picks the best candidate
+            score = -(cos_sim + 0.3 * goal_progress)
+        else:
+            # Very close to target — pick candidate with smallest displacement
+            score = np.sqrt(rel_dx ** 2 + rel_dy ** 2)
 
         if mask is not None:
-            # Set invalid candidates to infinite distance
-            dist = np.where(mask, dist, np.inf)
+            score = np.where(mask, score, np.inf)
 
-        best = int(np.argmin(dist))
-        # If all were masked (inf), pick the first valid
-        if np.isinf(dist[best]) and mask is not None:
+        best = int(np.argmin(score))
+        if np.isinf(score[best]) and mask is not None:
             valid = np.flatnonzero(mask)
             if valid.size > 0:
                 best = int(valid[0])

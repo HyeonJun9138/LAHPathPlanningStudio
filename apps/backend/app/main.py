@@ -75,6 +75,7 @@ from .api.simulation import router as simulation_router
 from .api.runs import router as runs_router
 from .api.reports import router as reports_router
 from .api.jobs import router as jobs_router
+from .api.ai import router as ai_router
 
 app.include_router(health_router)
 app.include_router(system_router)
@@ -89,6 +90,7 @@ app.include_router(simulation_router)
 app.include_router(runs_router)
 app.include_router(reports_router)
 app.include_router(jobs_router)
+app.include_router(ai_router)
 
 
 if __name__ == "__main__":

@@ -131,6 +131,89 @@ def compute_observation_rate(episodes: list[dict]) -> float:
     return float(np.mean(completions))
 
 
+def compute_mean_integrated_risk(episodes: list[dict]) -> float:
+    """Average total integrated risk accumulated over each episode.
+
+    Uses the ``total_risk`` key from the final state of each episode.
+    Falls back to summing per-step ``integrated_risk`` values.
+    """
+    if not episodes:
+        return 0.0
+    risks: list[float] = []
+    for ep in episodes:
+        if "total_risk" in ep:
+            risks.append(float(ep["total_risk"]))
+        else:
+            step_risk = sum(
+                float(s.get("integrated_risk", 0.0))
+                for s in ep.get("steps", [])
+            )
+            risks.append(step_risk)
+    return float(np.mean(risks)) if risks else 0.0
+
+
+def compute_mean_visible_time(episodes: list[dict]) -> float:
+    """Average time (seconds) the agent spent inside the observation box.
+
+    Uses the ``observe_time`` key from the final state.  Falls back to
+    counting steps where ``in_observe_box`` is true, multiplied by the
+    average step duration.
+    """
+    if not episodes:
+        return 0.0
+    times: list[float] = []
+    for ep in episodes:
+        if "observe_time" in ep:
+            times.append(float(ep["observe_time"]))
+        else:
+            steps = ep.get("steps", [])
+            in_box_count = sum(
+                1 for s in steps if s.get("in_observe_box", False)
+            )
+            # Estimate per-step duration from episode time
+            ep_time = float(ep.get("episode_time", len(steps)))
+            n_steps = max(len(steps), 1)
+            times.append(in_box_count * (ep_time / n_steps))
+    return float(np.mean(times)) if times else 0.0
+
+
+def compute_altitude_violation_count(episodes: list[dict]) -> float:
+    """Total number of altitude-AGL violations across all episodes.
+
+    A violation is counted when the agent's AGL drops below a minimum
+    safe threshold (``altitude_agl < 5.0`` metres).  Uses the
+    ``altitude_violations`` key if present; otherwise scans step data.
+    """
+    total = 0
+    for ep in episodes:
+        if "altitude_violations" in ep:
+            total += int(ep["altitude_violations"])
+        else:
+            for s in ep.get("steps", []):
+                agl = s.get("altitude_agl")
+                if agl is not None and float(agl) < 5.0:
+                    total += 1
+    return float(total)
+
+
+def compute_zone_violation_count(episodes: list[dict]) -> float:
+    """Total number of zone/boundary violations across all episodes.
+
+    A violation is any step where ``zone_penalty > 0``.  Uses the
+    ``zone_violations`` key if present; otherwise scans step data.
+    """
+    total = 0
+    for ep in episodes:
+        if "zone_violations" in ep:
+            total += int(ep["zone_violations"])
+        else:
+            for s in ep.get("steps", []):
+                zp = s.get("zone_penalty", 0.0)
+                if float(zp) > 0.0:
+                    total += 1
+    return float(total)
+
+
 def aggregate_metrics(episodes: list[dict]) -> dict[str, float]:
     """Compute all standard metrics and return them as a flat dict.
 
@@ -138,9 +221,10 @@ def aggregate_metrics(episodes: list[dict]) -> dict[str, float]:
     -------
     dict[str, float]
         Keys: ``success_rate``, ``mean_return``, ``mean_path_length``,
-        ``mean_episode_time``, ``mean_risk``, ``divert_rate``,
-        ``collision_rate``, ``observation_completion_rate``,
-        ``num_episodes``.
+        ``mean_episode_time``, ``mean_risk``, ``mean_integrated_risk``,
+        ``mean_visible_time``, ``altitude_violation_count``,
+        ``zone_violation_count``, ``divert_rate``, ``collision_rate``,
+        ``observation_completion_rate``, ``num_episodes``.
     """
     return {
         "success_rate": compute_success_rate(episodes),
@@ -148,6 +232,10 @@ def aggregate_metrics(episodes: list[dict]) -> dict[str, float]:
         "mean_path_length": compute_mean_path_length(episodes),
         "mean_episode_time": compute_mean_episode_time(episodes),
         "mean_risk": compute_mean_risk(episodes),
+        "mean_integrated_risk": compute_mean_integrated_risk(episodes),
+        "mean_visible_time": compute_mean_visible_time(episodes),
+        "altitude_violation_count": compute_altitude_violation_count(episodes),
+        "zone_violation_count": compute_zone_violation_count(episodes),
         "divert_rate": compute_divert_rate(episodes),
         "collision_rate": compute_collision_rate(episodes),
         "observation_completion_rate": compute_observation_rate(episodes),
